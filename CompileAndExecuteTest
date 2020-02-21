@@ -1,0 +1,4 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build TriggerConfig
+./bin-cc7/TriggerStudyExec -i ../../na62_data_files/na62_2017.008252.v1.1.6-01_f.v1.1.6-01.008252-0208-0217_PNN.root.1 -o TrigOut.root -n 10000 --start 10000

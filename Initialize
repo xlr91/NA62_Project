@@ -1,0 +1,4 @@
+#!/bin/bash
+cd /disk/moose/general/GroupStudies/2020/USERS/Emir/
+cc7
+source scripts/env.sh 
