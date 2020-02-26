@@ -160,7 +160,8 @@ void TriggerStudy::InitHist(){
 	/// 	BookHisto(histogram*)
 	/// \endcode
 
-	BookHisto("hFullTrigStudy", new TH1I("hTriggerStudy", "Kaon_Decay_Characteristics_afterL0", 10, 0, 10));
+	BookHisto("hFullTrigStudy", new TH1I("TriggerStudy", "Kaon_Decay_Characteristics_afterL0", 10, 0, 10));
+	BookHisto("hL0PNNChar", new TH1I("L0PNNChar", "L0PNN_Decay_Characteristics", 10, 0, 10));
 	
 
 	/// If isAutotUpdate is true, this histogram will be drawn and updated regularly during the processing (default=false).\n
@@ -197,7 +198,7 @@ void TriggerStudy::InitHist(){
 	BookCounter("Ke3Selection");
 	BookCounter("Kmu3SelectionNoSpectrometer");
 	BookCounter("Pi0Selection");
-	
+	BookCounter("Main5");
 	
 	
 	///		NewEventFraction(name)
@@ -226,6 +227,7 @@ void TriggerStudy::InitHist(){
 
 	/// Table 1: Trigger Analysis
 	NewEventFraction("TriggerAnalysis");
+	NewEventFraction("L0PNNAnalysis");
 
 	AddCounterToEventFraction("TriggerAnalysis", "TotalEvent");
  	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
@@ -238,8 +240,18 @@ void TriggerStudy::InitHist(){
 	AddCounterToEventFraction("TriggerAnalysis", "Kmu3SelectionNoSpectrometer");
 	AddCounterToEventFraction("TriggerAnalysis", "Pi0Selection");
 	DefineSampleSizeCounter("TriggerAnalysis", "TotalEvent");
-	
-	///DefineSampleSizeCounter("TriggerAnalysis", "PhysicsEvent");
+
+
+
+ 	AddCounterToEventFraction("L0PNNAnalysis", "L0PNN");
+	AddCounterToEventFraction("L0PNNAnalysis", "Main5");
+	AddCounterToEventFraction("L0PNNAnalysis", "Kmu2Selection");
+	AddCounterToEventFraction("L0PNNAnalysis", "K2piCounter");
+	AddCounterToEventFraction("L0PNNAnalysis", "K3piCounter");
+	AddCounterToEventFraction("L0PNNAnalysis", "Ke3Selection");
+	AddCounterToEventFraction("L0PNNAnalysis", "Kmu3SelectionNoSpectrometer");
+
+	DefineSampleSizeCounter("L0PNNAnalysis", "L0PNN");
 
 
 
@@ -454,6 +466,7 @@ void TriggerStudy::Process(int iEvent){
 	///if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
 
 	
+	
 	IncrementCounter("TotalEvent");
 	FillHisto("hFullTrigStudy", 0); ///TotalEvent
 	///Retrieve trigger information
@@ -477,6 +490,7 @@ void TriggerStudy::Process(int iEvent){
     	if(L0TriggerOnPNN) {
 			IncrementCounter("L0PNN"); 
 			FillHisto("hFullTrigStudy", 2); ///L0PNN
+			FillHisto("hL0PNNChar", 0);
 		}
 	
 
@@ -486,6 +500,9 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
 	if(Kmu2Selected) {
 		IncrementCounter("Kmu2Selection");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 2);
 		FillHisto("hFullTrigStudy", 3); ///K3PiCounter
 	}
 
@@ -494,6 +511,9 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
 	if(K2PiSelected) {
 		IncrementCounter("K2piCounter");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 3);
 		FillHisto("hFullTrigStudy", 4); ///K3PiCounter
 	}
 
@@ -503,6 +523,9 @@ void TriggerStudy::Process(int iEvent){
 	
 	if(K3PiSelected) {
 		IncrementCounter("K3piCounter");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 4);
 		FillHisto("hFullTrigStudy", 5); ///K3PiCounter
 		}
 
@@ -514,6 +537,9 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
 	if(Ke3Selected) {
 		IncrementCounter("Ke3Selection");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 5);
 		FillHisto("hFullTrigStudy", 6); ///K3PiCounter
 	}
 	
@@ -523,6 +549,9 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
 	if(Kmu3Selected) {
 		IncrementCounter("Kmu3SelectionNoSpectrometer");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 6);
 		FillHisto("hFullTrigStudy", 7); ///K3PiCounter
 	}
 	///Pi0Selection
@@ -535,12 +564,18 @@ void TriggerStudy::Process(int iEvent){
 	
 	
 	Int_t ix;
-	const Int_t nx = 9;
-	const char *labels[nx] = {"TotalEvent","PhysicsEvent", "L0PNN", "Kmu2Selection","K2piCounter",
+	const Int_t nx1 = 9;
+	const Int_t nx2 = 7;
+	const char *labels1[nx1] = {"TotalEvent","PhysicsEvent", "L0PNN", "Kmu2Selection","K2piCounter",
       "K3piCounter","Ke3Selection","Kmu3SelectionNoSpectrometer","Pi0Selection"};
+	const char *labels2[nx2] = {"L0PNN", "Main5", "Kmu2Selection","K2piCounter",
+      "K3piCounter","Ke3Selection","Kmu3SelectionNoSpectrometer"};
 
-	TH1 *MyHisto = fHisto.GetHisto("hFullTrigStudy");  ///should be fine having this here
-	for (ix=1;ix<=nx;ix++) MyHisto->GetXaxis()->SetBinLabel(ix,labels[ix-1]); /// important
+	TH1 *MyHisto1 = fHisto.GetHisto("hFullTrigStudy");  ///should be fine having this here
+	TH1 *MyHisto2 = fHisto.GetHisto("hL0PNNChar");  ///should be fine having this here
+
+	for (ix=1;ix<=nx1;ix++) MyHisto1->GetXaxis()->SetBinLabel(ix,labels1[ix-1]); /// important
+	for (ix=1;ix<=nx2;ix++) MyHisto2->GetXaxis()->SetBinLabel(ix,labels2[ix-1]); /// important
 
 }
 
