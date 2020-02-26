@@ -160,7 +160,7 @@ void TriggerStudy::InitHist(){
 	/// 	BookHisto(histogram*)
 	/// \endcode
 
-	BookHisto(new TH1I("Name(HistoTest)", "Title(K3PiCounts)", 10, 0, 10));
+	BookHisto("hFullTrigStudy", new TH1I("hTriggerStudy", "Kaon_Decay_Characteristics_afterL0", 10, 0, 10));
 	
 
 	/// If isAutotUpdate is true, this histogram will be drawn and updated regularly during the processing (default=false).\n
@@ -186,15 +186,20 @@ void TriggerStudy::InitHist(){
 	///	\code
 	///		BookCounter(name)
 	
+	///define all useful book counters
+	BookCounter("TotalEvent");
 	BookCounter("PhysicsEvent");
 	BookCounter("L0PNN");
-	
-	NewEventFraction("TriggerAnalysis");
- 	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
- 	AddCounterToEventFraction("TriggerAnalysis", "L0PNN");
 
+	BookCounter("Kmu2Selection");
+	BookCounter("K2piCounter");
+	BookCounter("K3piCounter");
+	BookCounter("Ke3Selection");
+	BookCounter("Kmu3SelectionNoSpectrometer");
+	BookCounter("Pi0Selection");
 	
-
+	
+	
 	///		NewEventFraction(name)
 	/// \endcode
 	/// Example\n
@@ -218,31 +223,23 @@ void TriggerStudy::InitHist(){
 	/// \endcode
 	/// Example\n
 	///	\code
-	BookCounter("TotalEvent");
+
+	/// Table 1: Trigger Analysis
+	NewEventFraction("TriggerAnalysis");
+
 	AddCounterToEventFraction("TriggerAnalysis", "TotalEvent");
-
-	BookCounter("K3piCounter");
-	AddCounterToEventFraction("TriggerAnalysis", "K3piCounter");
-
-	BookCounter("K2piCounter");
-	AddCounterToEventFraction("TriggerAnalysis", "K2piCounter");
-	DefineSampleSizeCounter("TriggerAnalysis", "TotalEvent");
-
-	///Ke3Selection
-	///Kmu2Selection
-	///Kmu3SelectionNoSpectrometer
-	///Pi0Selection
-
-
-	BookCounter("Ke3Selection");
-	BookCounter("Kmu2Selection");
-	BookCounter("Kmu3SelectionNoSpectrometer");
-	BookCounter("Pi0Selection");
-
-	AddCounterToEventFraction("TriggerAnalysis", "Ke3Selection");
+ 	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
+ 	AddCounterToEventFraction("TriggerAnalysis", "L0PNN");
+	
 	AddCounterToEventFraction("TriggerAnalysis", "Kmu2Selection");
+	AddCounterToEventFraction("TriggerAnalysis", "K2piCounter");
+	AddCounterToEventFraction("TriggerAnalysis", "K3piCounter");
+	AddCounterToEventFraction("TriggerAnalysis", "Ke3Selection");
 	AddCounterToEventFraction("TriggerAnalysis", "Kmu3SelectionNoSpectrometer");
 	AddCounterToEventFraction("TriggerAnalysis", "Pi0Selection");
+	DefineSampleSizeCounter("TriggerAnalysis", "TotalEvent");
+	
+	///DefineSampleSizeCounter("TriggerAnalysis", "PhysicsEvent");
 
 
 
@@ -456,8 +453,9 @@ void TriggerStudy::Process(int iEvent){
 	///if(fMCSimple.fStatus == MCSimple::kMissing){printIncompleteMCWarning(iEvent);return;}
 	///if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
 
+	
 	IncrementCounter("TotalEvent");
-	FillHisto("Name(HistoTest)", 0); ///TotalEvent
+	FillHisto("hFullTrigStudy", 0); ///TotalEvent
 	///Retrieve trigger information
  //
  	L0TPData* L0Packet = GetL0Data();
@@ -468,7 +466,7 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t PhysicsData = L0DataType & 0x1; 	
  //   	
  	if(PhysicsData) {IncrementCounter("PhysicsEvent");
-	FillHisto("Name(HistoTest)", 1); ///Physics Events
+	FillHisto("hFullTrigStudy", 1); ///Physics Events
 	 }
  //
  	EventHeader* EvtHdr = GetEventHeader();
@@ -478,25 +476,37 @@ void TriggerStudy::Process(int iEvent){
  //
     	if(L0TriggerOnPNN) {
 			IncrementCounter("L0PNN"); 
-			FillHisto("Name(HistoTest)", 2); ///L0PNN
+			FillHisto("hFullTrigStudy", 2); ///L0PNN
 		}
 	
-	/// From Evgueni
+
+
+	///Kmu2Selection
+	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
+	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
+	if(Kmu2Selected) {
+		IncrementCounter("Kmu2Selection");
+		FillHisto("hFullTrigStudy", 3); ///K3PiCounter
+	}
+
+	///K2pi Selection
+	NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
+	Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
+	if(K2PiSelected) {
+		IncrementCounter("K2piCounter");
+		FillHisto("hFullTrigStudy", 4); ///K3PiCounter
+	}
+
+	/// K3PiSelectoin
 	NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
 	Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
 	
 	if(K3PiSelected) {
 		IncrementCounter("K3piCounter");
-		FillHisto("Name(HistoTest)", 3); ///K3PiCounter
+		FillHisto("hFullTrigStudy", 5); ///K3PiCounter
 		}
 
 
-	NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
-	Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
-	if(K2PiSelected) {
-		IncrementCounter("K2piCounter");
-		FillHisto("Name(HistoTest)", 4); ///K3PiCounter
-	}
 
 
 	///Ke3Selection
@@ -504,30 +514,33 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
 	if(Ke3Selected) {
 		IncrementCounter("Ke3Selection");
-		FillHisto("Name(HistoTest)", 5); ///K3PiCounter
+		FillHisto("hFullTrigStudy", 6); ///K3PiCounter
 	}
-	///Kmu2Selection
-	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
-	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
-	if(Kmu2Selected) {
-		IncrementCounter("Kmu2Selection");
-		FillHisto("Name(HistoTest)", 6); ///K3PiCounter
-	}
+	
+	
 	///Kmu3SelectionNoSpectrometer
 	NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
 	Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
 	if(Kmu3Selected) {
 		IncrementCounter("Kmu3SelectionNoSpectrometer");
-		FillHisto("Name(HistoTest)", 7); ///K3PiCounter
+		FillHisto("hFullTrigStudy", 7); ///K3PiCounter
 	}
 	///Pi0Selection
 	NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
 	Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
 	if(K0PiSelected) {
 		IncrementCounter("Pi0Selection");
-		FillHisto("Name(HistoTest)", 8); ///K3PiCounter
+		FillHisto("hFullTrigStudy", 8); ///K3PiCounter
 	}
- 
+	
+	
+	Int_t ix;
+	const Int_t nx = 9;
+	const char *labels[nx] = {"TotalEvent","PhysicsEvent", "L0PNN", "Kmu2Selection","K2piCounter",
+      "K3piCounter","Ke3Selection","Kmu3SelectionNoSpectrometer","Pi0Selection"};
+
+	TH1 *MyHisto = fHisto.GetHisto("hFullTrigStudy");  ///should be fine having this here
+	for (ix=1;ix<=nx;ix++) MyHisto->GetXaxis()->SetBinLabel(ix,labels[ix-1]); /// important
 
 }
 
