@@ -2,6 +2,7 @@
 #include <iostream>
 #include <TChain.h>
 #include "TriggerStudy.hh"
+#include "DownstreamTrack.hh"
 #include "MCSimple.hh"
 #include "functions.hh"
 #include "Event.hh"
@@ -162,6 +163,9 @@ void TriggerStudy::InitHist(){
 
 	BookHisto("hFullTrigStudy", new TH1I("TriggerStudy", "Kaon_Decay_Characteristics_afterL0", 10, 0, 10));
 	BookHisto("hL0PNNChar", new TH1I("L0PNNChar", "L0PNN_Decay_Characteristics", 10, 0, 10));
+	BookHisto("hPTest", new TH1D("PTest", "Histogram_of_Pmomentum", 30000, -10000., 10000.));
+
+
 	
 
 	/// If isAutotUpdate is true, this histogram will be drawn and updated regularly during the processing (default=false).\n
@@ -466,7 +470,7 @@ void TriggerStudy::Process(int iEvent){
 	///if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
 
 	
-	
+
 	IncrementCounter("TotalEvent");
 	FillHisto("hFullTrigStudy", 0); ///TotalEvent
 	///Retrieve trigger information
@@ -487,13 +491,23 @@ void TriggerStudy::Process(int iEvent){
  //
  	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
  //
-    	if(L0TriggerOnPNN) {
-			IncrementCounter("L0PNN"); 
-			FillHisto("hFullTrigStudy", 2); ///L0PNN
-			FillHisto("hL0PNNChar", 0);
-		}
+    if(L0TriggerOnPNN) {
+		IncrementCounter("L0PNN"); 
+		FillHisto("hFullTrigStudy", 2); ///L0PNN
+		FillHisto("hL0PNNChar", 0);
+	}
 	
 
+	/// Momentum test
+	///std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
+	
+	
+	///Double_t Ptrack = Tracks[0].GetMomentum();
+	///Double_t eop = Tracks[0].GetLKrEnergy();
+	///cout << Ptrack << endl;
+
+	///if(L0TriggerOnPNN) {cout << eop << endl;}
+	///if(L0TriggerOnPNN) {FillHisto("hPTest", eop);}
 
 	///Kmu2Selection
 	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable

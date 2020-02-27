@@ -233,6 +233,12 @@ def simulate(beam_momentum, number_of_particles, beam_particle, product1, produc
     p2_30 = 0
     p3_30 = 0
     
+    p1or2_30 = 0
+
+    p1or3_30 = 0
+    p2or3_30 = 0
+    pifany = 0
+    
     for p in p1p:
         if p > cutoff:
             p1_30 += 1
@@ -244,9 +250,28 @@ def simulate(beam_momentum, number_of_particles, beam_particle, product1, produc
     for p in p3p:
         if p > cutoff:
             p3_30 += 1
+
+    
+    for i in range(len(p1p)):
+        if p1p[i] > cutoff or p2p[i] > cutoff:
+            p1or2_30 += 1
+        if len(p3p) != 0:
+            if p1p[i] > cutoff or p3p[i] > cutoff:
+                p1or3_30 += 1
+            if p2p[i] > cutoff or p3p[i] > cutoff:
+                p2or3_30 += 1
+            if p1p[i] > cutoff or p2p[i] > cutoff or p3p[i]>cutoff:
+                pifany += 1
+
+    
+
     
     p1percent = p1_30 / len(p1p)
     p2percent = p2_30 / len(p2p)
+    p1or2percent = p1or2_30/len(p1p)
+    p1or3percent = p1or3_30/len(p1p)
+    p2or3percent = p2or3_30/len(p2p)
+    pifanypercent = pifany/len(p1p)
     try:
         p3percent = p3_30 / len(p3p)
     except:
@@ -259,6 +284,13 @@ def simulate(beam_momentum, number_of_particles, beam_particle, product1, produc
     print("The %s has a probability of %f of have a momentum above %f GeV." % (product1, p1percent, cutoff))
     print("The %s has a probability of %f of have a momentum above %f GeV." % (product2, p2percent, cutoff))
     print("The %s has a probability of %f of have a momentum above %f GeV." % (product3, p3percent, cutoff))
+
+    print("The %s or %s has a probability of %f of have a momentum above %f GeV." % (product1, product2, p1or2percent, cutoff))
+    print("The %s or %s has a probability of %f of have a momentum above %f GeV." % (product1, product3, p1or3percent, cutoff))
+    print("The %s or %s has a probability of %f of have a momentum above %f GeV." % (product2, product3, p2or3percent, cutoff))
+
+    print("The %s or %s or %s has a probability of %f of have a momentum above %f GeV." % (product1, product2, product3, pifanypercent, cutoff))
+
         
         
     # Max Parameters
@@ -380,9 +412,13 @@ def simulate(beam_momentum, number_of_particles, beam_particle, product1, produc
         plt.plot()
 
 if __name__ == '__main__':
-    simulate(75, 100000, 'K+', 'mu+', 'nu_mu', product3=None, cutoff=30)
-    simulate(75, 100000, 'K+', 'pi+', 'pi0', product3=None, cutoff=30)
-    simulate(75, 100000, 'K+', 'pi+', 'pi+', product3='pi-', cutoff=30)
-    simulate(75, 100000, 'K+', 'pi0', 'e+', product3='nu_e', cutoff=30)
-    simulate(75, 100000, 'K+', 'pi0', 'mu+', product3='nu_mu', cutoff=30)
-    simulate(75, 100000, 'K+', 'pi+', 'pi0', product3='pi0', cutoff=30)
+    simulate(75, 1000000, 'K+', 'mu+', 'nu_mu', product3=None, cutoff=30)
+    simulate(75, 1000000, 'K+', 'pi+', 'pi0', product3=None, cutoff=30)
+    simulate(75, 1000000, 'K+', 'pi+', 'pi+', product3='pi-', cutoff=30)
+    simulate(75, 1000000, 'K+', 'pi0', 'e+', product3='nu_e', cutoff=30)
+    simulate(75, 1000000, 'K+', 'pi0', 'mu+', product3='nu_mu', cutoff=30)
+    simulate(75, 1000000, 'K+', 'pi+', 'pi0', product3='pi0', cutoff=30)
+    simulate(75, 1000000, 'K+', 'pi+', 'nu_e', product3='nu_ebar', cutoff=30)
+
+if __name__ != '__main__':
+    simulate(75, 10, 'K+', 'pi+', 'pi+', product3='pi-', cutoff=30)

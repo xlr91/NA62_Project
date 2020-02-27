@@ -59,7 +59,9 @@ class ParticleDatabase(dict):
     ###########################################################################
     # Problem 2(a), 2(b).
     ###########################################################################
-    def __init__(self, xmlfile = "ParticleData.xml"):
+    def __init__(self, xmlfile = "/Users/emirmuhammad/Desktop/Na62Files/Python_Files/ParticleData.xml"):
+
+
         """
         Read in the particle data from the XML file 'xmlfile'.
         """

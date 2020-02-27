@@ -30,7 +30,7 @@
 #include <TStyle.h>
 #include <iostream>
 
-TH1F* TotalEnergy;
+TH1F* TotalEnergy; ///new histogram for the total energy
 TH2F* PhiPlusVsPhiMinus;
 
 int counter;
