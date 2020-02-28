@@ -167,34 +167,84 @@ void TriggerStudy::InitHist(){
 	BookHisto("hPMom", new TH1D("PMomTest", "Momentum_Distro_from_Somewhere", 30, 0, 70000));
 	BookHisto("hEOP", new TH1D("EOPTest", "E/p_thing", 30, 0, 1.5));
 
-	
+
+	///Comments
+		/// If isAutotUpdate is true, this histogram will be drawn and updated regularly during the processing (default=false).\n
+		/// The refresh interval can be set with (default=10):
+		/// \code
+		/// 	SetUpdateInterval(interval)
+		/// \endcode
+		/// Defining plots as AutoUpdate and setting the interval can also be done at runtime with a configuration file.\n
+		/// \n
+		/// Example of booking an histogram: \n
+		///	\code
+		/// 	BookHisto(new TH2I("PartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy));
+		/// \endcode
+		/// THe histogram can be saved in a subdirectory of the output files in several ways:\n
+		/// \code
+		/// 	BookHisto(new TH2I("PartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy), refresh, "dir1/dir2");
+		/// 	BookHisto(new TH2I("dir1/dir2/PartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy));
+		/// 	BookHisto("dir1/dir2/PartEnergy", new TH2I("hPartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy));
+		/// \endcode
+		/// In the first case, the ID of the histo in the framework (to use with FillHisto, ...) and its name in the output file is "PartEnergy".
+		/// In the second and third case, the ID is "dir1/dir2/PartEnergy" and the name in the output file is respectively "PartEnergy" and "hPartEnergy".
+		/// Booking of counters and creation of EventFraction can be done here with\n
+		///	\code
+		///		BookCounter(name)
+
+		///		NewEventFraction(name)
+		/// \endcode
+		/// Example\n
+		///	\code
+		/// 	BookCounter("Total");
+		/// 	BookCounter("PassCuts");
+		/// 	NewEventFraction("Cuts");
+		/// \endcode
+		/// Add the counters to the EventFraction\n
+		///	\code
+		/// 	AddCounterToEventFraction(EventFractionName, CounterName)
+		/// \endcode
+		/// Example\n
+		///	\code
+		/// 	AddCounterToEventFraction("Cuts", "Total");
+		/// 	AddCounterToEventFraction("Cuts", "PassCuts");
+		/// \endcode
+		/// Then define which counter represents the sample size\n
+		///	\code
+		/// 	DefineSampleSizeCounter(EventFractionName, CounterName)
+		/// \endcode
+		/// Example\n
+		///	\code
+		/// 	DefineSampleSizeCounter("Cuts", "Total");
+		/// \endcode
+		/// You can check the content of the input file (directory, histograms, generic key) in any directory with the following methods
+		/// \code
+		/// 	GetListOfKeys("CedarMonitoring"); // CedarMonitoring directory
+		/// 	GetListOfHisto(""); // Top directory
+		/// 	GetListOfTH1("CedarMonitoring");
+		/// 	GetListOfTH2("CedarMonitoring");
+		/// 	GetListOfTGraph("CedarMonitoring");
+		/// 	GetListOfDirs("");
+		/// \endcode
+		/// The first one returns a vector of IOHandler::keyPair containing the name and class name of the object
+		/// \code
+		/// 	vector<IOHandler::keyPair> keys = GetListOfKeys("CedarMonitoring");
+		/// 	cout << keys[0].name << " " << keys[0].className << endl;
+		/// \endcode
+		/// The others returns a vector of TString containing the name of the objects.\n
+		/// You can retrieve histograms from the input ROOT file under the directory "dir1/dir2" (Anything derived from TH1) with\n
+		///	\code
+		/// 	RequestHistogram("dir1/dir2", "HistogramName", appendOnNewFile);
+		/// 	RequestHistogram("dir1", "dir2/HistogramName", appendOnNewFile);
+		/// \endcode
+		/// In the first case the ID in the framework is "HistogramName", while it is "dir2/HistogramName" in the second case.
+		/// appendOnNewFile is a boolean. If set to true, each time a new file is opened the content
+		/// of the histogram will be appended to the content of the previous one. If set to false, the content
+		/// of the histogram is replaced each time a new file is opened.
+		/// \EndMemberDescr
+	///
 
 
-	
-
-	/// If isAutotUpdate is true, this histogram will be drawn and updated regularly during the processing (default=false).\n
-	/// The refresh interval can be set with (default=10):
-	/// \code
-	/// 	SetUpdateInterval(interval)
-	/// \endcode
-	/// Defining plots as AutoUpdate and setting the interval can also be done at runtime with a configuration file.\n
-	/// \n
-	/// Example of booking an histogram: \n
-	///	\code
-	/// 	BookHisto(new TH2I("PartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy));
-	/// \endcode
-	/// THe histogram can be saved in a subdirectory of the output files in several ways:\n
-	/// \code
-	/// 	BookHisto(new TH2I("PartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy), refresh, "dir1/dir2");
-	/// 	BookHisto(new TH2I("dir1/dir2/PartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy));
-	/// 	BookHisto("dir1/dir2/PartEnergy", new TH2I("hPartEnergy", "Energy as a function of particle", 0, 0, 0, Bins, MinEnergy, MaxEnergy));
-	/// \endcode
-	/// In the first case, the ID of the histo in the framework (to use with FillHisto, ...) and its name in the output file is "PartEnergy".
-	/// In the second and third case, the ID is "dir1/dir2/PartEnergy" and the name in the output file is respectively "PartEnergy" and "hPartEnergy".
-	/// Booking of counters and creation of EventFraction can be done here with\n
-	///	\code
-	///		BookCounter(name)
-	
 	///define all useful book counters
 	BookCounter("TotalEvent");
 	BookCounter("PhysicsEvent");
@@ -209,31 +259,9 @@ void TriggerStudy::InitHist(){
 	BookCounter("Main5");
 	
 	
-	///		NewEventFraction(name)
-	/// \endcode
-	/// Example\n
-	///	\code
-	/// 	BookCounter("Total");
-	/// 	BookCounter("PassCuts");
-	/// 	NewEventFraction("Cuts");
-	/// \endcode
-	/// Add the counters to the EventFraction\n
-	///	\code
-	/// 	AddCounterToEventFraction(EventFractionName, CounterName)
-	/// \endcode
-	/// Example\n
-	///	\code
-	/// 	AddCounterToEventFraction("Cuts", "Total");
-	/// 	AddCounterToEventFraction("Cuts", "PassCuts");
-	/// \endcode
-	/// Then define which counter represents the sample size\n
-	///	\code
-	/// 	DefineSampleSizeCounter(EventFractionName, CounterName)
-	/// \endcode
-	/// Example\n
-	///	\code
 
-	/// Table 1: Trigger Analysis
+
+	/// Tables
 	NewEventFraction("TriggerAnalysis");
 	NewEventFraction("L0PNNAnalysis");
 
@@ -265,33 +293,7 @@ void TriggerStudy::InitHist(){
 
 	
 
-	/// 	DefineSampleSizeCounter("Cuts", "Total");
-	/// \endcode
-	/// You can check the content of the input file (directory, histograms, generic key) in any directory with the following methods
-	/// \code
-	/// 	GetListOfKeys("CedarMonitoring"); // CedarMonitoring directory
-	/// 	GetListOfHisto(""); // Top directory
-	/// 	GetListOfTH1("CedarMonitoring");
-	/// 	GetListOfTH2("CedarMonitoring");
-	/// 	GetListOfTGraph("CedarMonitoring");
-	/// 	GetListOfDirs("");
-	/// \endcode
-	/// The first one returns a vector of IOHandler::keyPair containing the name and class name of the object
-	/// \code
-	/// 	vector<IOHandler::keyPair> keys = GetListOfKeys("CedarMonitoring");
-	/// 	cout << keys[0].name << " " << keys[0].className << endl;
-	/// \endcode
-	/// The others returns a vector of TString containing the name of the objects.\n
-	/// You can retrieve histograms from the input ROOT file under the directory "dir1/dir2" (Anything derived from TH1) with\n
-	///	\code
-	/// 	RequestHistogram("dir1/dir2", "HistogramName", appendOnNewFile);
-	/// 	RequestHistogram("dir1", "dir2/HistogramName", appendOnNewFile);
-	/// \endcode
-	/// In the first case the ID in the framework is "HistogramName", while it is "dir2/HistogramName" in the second case.
-	/// appendOnNewFile is a boolean. If set to true, each time a new file is opened the content
-	/// of the histogram will be appended to the content of the previous one. If set to false, the content
-	/// of the histogram is replaced each time a new file is opened.
-	/// \EndMemberDescr
+
 }
 
 void TriggerStudy::DefineMCSimple(){
@@ -341,137 +343,141 @@ void TriggerStudy::ProcessSpecialTriggerUser(int iEvent, unsigned int triggerTyp
 }
 
 void TriggerStudy::Process(int iEvent){
-	/// \MemberDescr
-	/// \param iEvent : Event number
+
 	///
-	/// Main process method. Called on each event. Write you analysis here.\n
-	/// You can retrieve MC particles from the fMCSimple set with (returns a vector<KinePart*>)\n
-	/// \code
-	/// 	fMCSimple["particleName"]
-	/// 	fMCSimple[pdgID]
-	/// \endcode
-	/// Example\n
-	/// \code
-	/// 	fMCSimple["K+"][index]; //for the kaon
-	/// 	fMCSimple["pi+"][index]; //for the positive pion
-	/// 	fMCSimple["gamma"][index]; //for the photon
-	/// \endcode
-	/// The number in the brackets is the index of the particle (if you asked for two photons in the set, you can ask fMCSimple["gamma"][0] for the first one and fMCSimple["gamma"][1] for the second)\n
-	/// \n
-	/// If you need a property of a particle, you can make a call to fParticleInterface (instance of the ParticleInterface class).\n
-	///	This class has two methods FindParticle that will return a TParticlePDG with the required particle. You can search by pdgID or by name.\n
-	///	This class also provide two methods to switch between particle name and pdgID if necessary.\n
-	///	Example\n
-	/// \code
-	/// 	double kaonMass = fParticleInterface->FindParticle(321).Mass();
-	/// 	double pi0Lifetime = fParticleInterface->FindParticle("pi0").Lifetime();
-	/// \endcode
-	/// You can retrieve the events from the trees with\n
-	/// \code
-	/// 	GetEvent<eventClass>();
-	/// 	GetEvent<eventClass>("Digis");
-	/// 	(eventClass*)GetEvent("detectorName");
-	/// 	(eventClass*)GetEvent("detectorName", "Digis");
-	/// \endcode
-	/// The first two forms can be used only if the class is of type
-	/// T<i>DetectorName</i>Event or TReco<i>DetectorName</i>Event.\n
-	/// You can retrieve data from generic TTrees with\n
-	/// \code
-	/// 	GetObject<MyClass>("treeName");			// For class objects
-	/// 	GetPrimitiveObject<int>("treeName");	// For primitive datatype (int, double, Int_t, ...)
-	/// \endcode
-	/// You can retrieve full MC events if available ( GetWithMC() ) with\n
-	/// \code
-	/// 	GetMCEvent();
-	/// 	GetMCEvent("Digis");
-	/// \endcode
-	/// You can retrieve EventHeader if available ( GetWithEventHeader() ) with\n
-	/// \code
-	/// 	GetEventHeader();
-	/// 	GetEventHeader("Digis");
-	/// \endcode
-	/// You can retrieve Trigger data if requested with\n
-	/// \code
-	/// 	GetL0Data();
-	/// 	GetL1Data();
-	/// 	GetL2Data();
-	/// \endcode
-	/// You can retrieve the histograms you booked (for drawing, changing, filling, ...) with\n
-	/// \code
-	/// 	fHisto.GetTH1("histoName");// for TH1
-	/// 	fHisto.GetTH2("histoName");// for TH2
-	/// 	fHisto.GetTGraph("graphName");// for TGraph and TGraphAsymmErrors
-	/// 	fHisto.GetHisto("histoName");// for TH1 or TH2 (returns a TH1 pointer)
-	/// \endcode
-	/// To fill the histograms you can use\n
-	/// \code
-	/// 	FillHisto("histoName", values)
-	/// \endcode
-	/// where values are the same parameters as if you call histogram->Fill(values) (x,y,weight,...)\n
-	/// If the histogram is not found, an error message is printed\n
-	/// \n
-	/// Modify a counter with one of the following methods\n
-	/// \code
-	/// 	IncrementCounter(name)
-	/// 	IncrementCounter(name, delta)
-	/// 	DecrementCounter(name)
-	/// 	DecrementCounter(name, delta)
-	/// 	SetCounterValue(name, value)
-	/// \endcode
-	/// \n
-	/// To use the output of a different analyzer, use\n
-	/// \code
-	/// 	outputType *var = GetOutput<outputType>("analyzerName.outputName", state);
-	/// \endcode
-	/// Where outputType is the variable type and state is of type outputState\n
-	/// State is set with the state of the variable (kOUninit, kOInvalid ,kOValid). The value of the output should only be trusted if state == kOValid\n
-	/// example :
-	/// \code
-	/// 	TLorentzVector vertex = *(TLorentzVector*)GetOutput("simpleVertexAnalyzer.vertex", state);
-	/// \endcode
-	/// Before starting the processing of an event, the state flag of each output variable is reset to kOUninit\n
-	/// When setting the value of an output variable, don't forget to set appropriately the state flag to either kOValid or kOInvalid\n
-	/// to indicate if the value can/can't be used in other analyzer\n
-	/// \code
-	/// 	SetOutputState("outputName", kOValid);
-	/// \endcode
-	/// If you want to append a candidate in one of your standard output Tree, use\n
-	/// \code
-	/// 	KinePart *candidate = CreateStandardCandidate("treeName");
-	/// \endcode
-	/// and fill the properties of your candidate. It will be automatically written in the output tree.\n
-	///	\n
-	/// If you want to save this event in your custom and standard TTrees (not the input tree replication), call\n
-	/// \code
-	/// 	FillTrees();
-	/// 	FillTrees("treeName");
-	/// \endcode
-	/// This will call the Fill method of every TTree created in this analyzer.\n
-	///	\n
-	/// If you want to replicate this event in the output file, call\n
-	/// \code
-	/// 	FilterAccept();
-	/// \endcode
-	/// The structure of all the trees that have been opened (by all Analyzer) will be copied in the output file\n
-	/// and the events for which at least one analyzer called FilterAccept() will be replicated in the output trees.\n
-	/// For more information, please refer to the \ref eventFiltering "Event Filtering" page
-	/// \n
-	/// The primitives associated to the current event can be retrieved in two ways:\n
-	/// \code
-	/// FindAllPrimitiveInMatchingWindow("detName");
-	/// \endcode
-	/// allows to get all the primitives in a certain window around the event timestamp (L0MatchingWindowWidth)
-	/// while
-	/// \code
-	/// FindMatchingPrimitive("detName");
-	/// \endcode
-	/// allows to get the primitive closest the the event timestamp (but nevertheless withing the
-	/// L0MatchingWindowWidth).
-	/// @see ROOT TParticlePDG for the particle properties
-	/// @see ROOT TDatabasePDG for a list of PDG codes and particle naming convention
-	/// \EndMemberDescr
-	///if(fMCSimple.fStatus == MCSimple::kMissing){printIncompleteMCWarning(iEvent);return;}
-	///if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
+		/// \MemberDescr
+		/// \param iEvent : Event number
+		///
+		/// Main process method. Called on each event. Write you analysis here.\n
+		/// You can retrieve MC particles from the fMCSimple set with (returns a vector<KinePart*>)\n
+		/// \code
+		/// 	fMCSimple["particleName"]
+		/// 	fMCSimple[pdgID]
+		/// \endcode
+		/// Example\n
+		/// \code
+		/// 	fMCSimple["K+"][index]; //for the kaon
+		/// 	fMCSimple["pi+"][index]; //for the positive pion
+		/// 	fMCSimple["gamma"][index]; //for the photon
+		/// \endcode
+		/// The number in the brackets is the index of the particle (if you asked for two photons in the set, you can ask fMCSimple["gamma"][0] for the first one and fMCSimple["gamma"][1] for the second)\n
+		/// \n
+		/// If you need a property of a particle, you can make a call to fParticleInterface (instance of the ParticleInterface class).\n
+		///	This class has two methods FindParticle that will return a TParticlePDG with the required particle. You can search by pdgID or by name.\n
+		///	This class also provide two methods to switch between particle name and pdgID if necessary.\n
+		///	Example\n
+		/// \code
+		/// 	double kaonMass = fParticleInterface->FindParticle(321).Mass();
+		/// 	double pi0Lifetime = fParticleInterface->FindParticle("pi0").Lifetime();
+		/// \endcode
+		/// You can retrieve the events from the trees with\n
+		/// \code
+		/// 	GetEvent<eventClass>();
+		/// 	GetEvent<eventClass>("Digis");
+		/// 	(eventClass*)GetEvent("detectorName");
+		/// 	(eventClass*)GetEvent("detectorName", "Digis");
+		/// \endcode
+		/// The first two forms can be used only if the class is of type
+		/// T<i>DetectorName</i>Event or TReco<i>DetectorName</i>Event.\n
+		/// You can retrieve data from generic TTrees with\n
+		/// \code
+		/// 	GetObject<MyClass>("treeName");			// For class objects
+		/// 	GetPrimitiveObject<int>("treeName");	// For primitive datatype (int, double, Int_t, ...)
+		/// \endcode
+		/// You can retrieve full MC events if available ( GetWithMC() ) with\n
+		/// \code
+		/// 	GetMCEvent();
+		/// 	GetMCEvent("Digis");
+		/// \endcode
+		/// You can retrieve EventHeader if available ( GetWithEventHeader() ) with\n
+		/// \code
+		/// 	GetEventHeader();
+		/// 	GetEventHeader("Digis");
+		/// \endcode
+		/// You can retrieve Trigger data if requested with\n
+		/// \code
+		/// 	GetL0Data();
+		/// 	GetL1Data();
+		/// 	GetL2Data();
+		/// \endcode
+		/// You can retrieve the histograms you booked (for drawing, changing, filling, ...) with\n
+		/// \code
+		/// 	fHisto.GetTH1("histoName");// for TH1
+		/// 	fHisto.GetTH2("histoName");// for TH2
+		/// 	fHisto.GetTGraph("graphName");// for TGraph and TGraphAsymmErrors
+		/// 	fHisto.GetHisto("histoName");// for TH1 or TH2 (returns a TH1 pointer)
+		/// \endcode
+		/// To fill the histograms you can use\n
+		/// \code
+		/// 	FillHisto("histoName", values)
+		/// \endcode
+		/// where values are the same parameters as if you call histogram->Fill(values) (x,y,weight,...)\n
+		/// If the histogram is not found, an error message is printed\n
+		/// \n
+		/// Modify a counter with one of the following methods\n
+		/// \code
+		/// 	IncrementCounter(name)
+		/// 	IncrementCounter(name, delta)
+		/// 	DecrementCounter(name)
+		/// 	DecrementCounter(name, delta)
+		/// 	SetCounterValue(name, value)
+		/// \endcode
+		/// \n
+		/// To use the output of a different analyzer, use\n
+		/// \code
+		/// 	outputType *var = GetOutput<outputType>("analyzerName.outputName", state);
+		/// \endcode
+		/// Where outputType is the variable type and state is of type outputState\n
+		/// State is set with the state of the variable (kOUninit, kOInvalid ,kOValid). The value of the output should only be trusted if state == kOValid\n
+		/// example :
+		/// \code
+		/// 	TLorentzVector vertex = *(TLorentzVector*)GetOutput("simpleVertexAnalyzer.vertex", state);
+		/// \endcode
+		/// Before starting the processing of an event, the state flag of each output variable is reset to kOUninit\n
+		/// When setting the value of an output variable, don't forget to set appropriately the state flag to either kOValid or kOInvalid\n
+		/// to indicate if the value can/can't be used in other analyzer\n
+		/// \code
+		/// 	SetOutputState("outputName", kOValid);
+		/// \endcode
+		/// If you want to append a candidate in one of your standard output Tree, use\n
+		/// \code
+		/// 	KinePart *candidate = CreateStandardCandidate("treeName");
+		/// \endcode
+		/// and fill the properties of your candidate. It will be automatically written in the output tree.\n
+		///	\n
+		/// If you want to save this event in your custom and standard TTrees (not the input tree replication), call\n
+		/// \code
+		/// 	FillTrees();
+		/// 	FillTrees("treeName");
+		/// \endcode
+		/// This will call the Fill method of every TTree created in this analyzer.\n
+		///	\n
+		/// If you want to replicate this event in the output file, call\n
+		/// \code
+		/// 	FilterAccept();
+		/// \endcode
+		/// The structure of all the trees that have been opened (by all Analyzer) will be copied in the output file\n
+		/// and the events for which at least one analyzer called FilterAccept() will be replicated in the output trees.\n
+		/// For more information, please refer to the \ref eventFiltering "Event Filtering" page
+		/// \n
+		/// The primitives associated to the current event can be retrieved in two ways:\n
+		/// \code
+		/// FindAllPrimitiveInMatchingWindow("detName");
+		/// \endcode
+		/// allows to get all the primitives in a certain window around the event timestamp (L0MatchingWindowWidth)
+		/// while
+		/// \code
+		/// FindMatchingPrimitive("detName");
+		/// \endcode
+		/// allows to get the primitive closest the the event timestamp (but nevertheless withing the
+		/// L0MatchingWindowWidth).
+		/// @see ROOT TParticlePDG for the particle properties
+		/// @see ROOT TDatabasePDG for a list of PDG codes and particle naming convention
+		/// \EndMemberDescr
+		///if(fMCSimple.fStatus == MCSimple::kMissing){printIncompleteMCWarning(iEvent);return;}
+		///if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
+
+	///
 
 	
 
@@ -485,14 +491,15 @@ void TriggerStudy::Process(int iEvent){
  	Int_t  L0DataType     = L0Packet->GetDataType();
 	Bool_t PhysicsData = L0DataType & 0x1; 	
  
- 	if(PhysicsData) {
-		IncrementCounter("PhysicsEvent");
-		FillHisto("hFullTrigStudy", 1); ///Physics Events
-	}
- 	
 	EventHeader* EvtHdr = GetEventHeader();
  	Int_t RunNumber = EvtHdr->GetRunID(); 
  	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
+
+
+	if(PhysicsData) {
+		IncrementCounter("PhysicsEvent");
+		FillHisto("hFullTrigStudy", 1); ///Physics Events
+	}
 
     if(L0TriggerOnPNN) {
 		IncrementCounter("L0PNN"); 
@@ -501,19 +508,9 @@ void TriggerStudy::Process(int iEvent){
 	}
 	
 
-	/// Momentum test
+	/// EOP tests (Help from KMu2Selection.cc)
 	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
-
 	if (Tracks.size() != 1) {return;}
-	
-	
-	///try {Double_t Ptrack = Tracks[0].GetMomentum();
-	///	if (Ptrack){
-	///		cout<<Ptrack<<endl;
-	///	}	
-	///} 
-	///catch (...) { cout<<"Bad"<<endl; return;}
-
 	Double_t Ptrack = Tracks[0].GetMomentum();
 	Double_t LKREnergy = Tracks[0].GetLKrEnergy();
 
@@ -523,10 +520,6 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hEOP", LKREnergy/Ptrack);
 		///cout << LKREnergy << endl;
 	}
-	
-
-	///if(L0TriggerOnPNN) {cout << eop << endl;}
-	///if(L0TriggerOnPNN) lolololol
 
 
 	///Particle Selections 
@@ -564,9 +557,6 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hFullTrigStudy", 5); ///K3PiCounter
 		}
 
-
-
-
 	///Ke3Selection
 	NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
 	Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
@@ -578,7 +568,6 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hFullTrigStudy", 6); ///K3PiCounter
 	}
 	
-	
 	///Kmu3SelectionNoSpectrometer
 	NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
 	Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
@@ -589,6 +578,7 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hL0PNNChar", 6);
 		FillHisto("hFullTrigStudy", 7); ///K3PiCounter
 	}
+
 	///Pi0Selection
 	NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
 	Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
@@ -597,6 +587,10 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hFullTrigStudy", 8); ///K3PiCounter
 	}
 	
+
+
+
+
 	///labelling histograms
 	Int_t ix;
 	const Int_t nx1 = 9;
