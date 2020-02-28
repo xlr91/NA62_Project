@@ -1,7 +1,7 @@
 
-analyzers = Kmu2
+analyzers = Kmu2Selection
 preanalyzers =
-exec = TEST001
+exec = Kmu2
 
 libs =
 libsdirs =

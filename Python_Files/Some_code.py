@@ -358,6 +358,7 @@ def simulate(beam_momentum, number_of_particles, beam_particle, product1, produc
         plt.yticks(fontsize=0.65*fontsize)
         plt.plot()
 
+        '''
         plt.figure(figsize=(25,12))
         plt.hist(particle[1], 200)
         plt.axvline(0, 0, 999999, color='k')
@@ -392,6 +393,7 @@ def simulate(beam_momentum, number_of_particles, beam_particle, product1, produc
         plt.xticks(fontsize=0.65*fontsize)
         plt.yticks(fontsize=0.65*fontsize)
         plt.plot()
+        '''
         
         plt.figure(figsize=(25,12))
         plt.hist(particle[4], 200)
@@ -420,5 +422,7 @@ if __name__ == '__main__':
     simulate(75, 1000000, 'K+', 'pi+', 'pi0', product3='pi0', cutoff=30)
     simulate(75, 1000000, 'K+', 'pi+', 'nu_e', product3='nu_ebar', cutoff=30)
 
+'''
 if __name__ != '__main__':
     simulate(75, 10, 'K+', 'pi+', 'pi+', product3='pi-', cutoff=30)
+'''

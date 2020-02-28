@@ -507,7 +507,7 @@ void TriggerStudy::Process(int iEvent){
 	///cout << Ptrack << endl;
 
 	///if(L0TriggerOnPNN) {cout << eop << endl;}
-	///if(L0TriggerOnPNN) {FillHisto("hPTest", eop);}
+	///if(L0TriggerOnPNN) lolololol
 
 	///Kmu2Selection
 	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
