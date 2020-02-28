@@ -499,11 +499,15 @@ void TriggerStudy::Process(int iEvent){
 	
 
 	/// Momentum test
-	///std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
+	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
 	
 	
 	///Double_t Ptrack = Tracks[0].GetMomentum();
-	///Double_t eop = Tracks[0].GetLKrEnergy();
+	Double_t eop = Tracks[0].GetLKrEnergy();
+	if (!eop) { // this is the NULL check
+        cout << "This is wrong" <<endl;
+        return;
+		}
 	///cout << Ptrack << endl;
 
 	///if(L0TriggerOnPNN) {cout << eop << endl;}
