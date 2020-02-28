@@ -473,24 +473,23 @@ void TriggerStudy::Process(int iEvent){
 
 	IncrementCounter("TotalEvent");
 	FillHisto("hFullTrigStudy", 0); ///TotalEvent
+
 	///Retrieve trigger information
- //
  	L0TPData* L0Packet = GetL0Data();
  	L1TPData* L1Packet = GetL1Data();
- //
+ 
  	Int_t  L0DataType     = L0Packet->GetDataType();
- //
 	Bool_t PhysicsData = L0DataType & 0x1; 	
- //   	
- 	if(PhysicsData) {IncrementCounter("PhysicsEvent");
-	FillHisto("hFullTrigStudy", 1); ///Physics Events
-	 }
- //
- 	EventHeader* EvtHdr = GetEventHeader();
- 	Int_t RunNumber = EvtHdr->GetRunID();
- //
+ 
+ 	if(PhysicsData) {
+		IncrementCounter("PhysicsEvent");
+		FillHisto("hFullTrigStudy", 1); ///Physics Events
+	}
+ 	
+	EventHeader* EvtHdr = GetEventHeader();
+ 	Int_t RunNumber = EvtHdr->GetRunID(); 
  	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
- //
+
     if(L0TriggerOnPNN) {
 		IncrementCounter("L0PNN"); 
 		FillHisto("hFullTrigStudy", 2); ///L0PNN
@@ -500,19 +499,26 @@ void TriggerStudy::Process(int iEvent){
 
 	/// Momentum test
 	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
-	
-	
+	///try {Double_t Ptrack = Tracks[0].GetMomentum();
+	///	if (Ptrack){
+	///		cout<<Ptrack<<endl;
+	///	}	
+	///} 
+	///catch (...) { cout<<"Bad"<<endl; return;}
+
 	///Double_t Ptrack = Tracks[0].GetMomentum();
-	Double_t eop = Tracks[0].GetLKrEnergy();
-	if (!eop) { // this is the NULL check
-        cout << "This is wrong" <<endl;
-        return;
-		}
+	///Double_t eop = Tracks[0].GetLKrEnergy();
+	///if (!eop) { // this is the NULL check
+    ///    cout << "This is wrong" <<endl;
+    ///    return;
+	///	}
 	///cout << Ptrack << endl;
 
 	///if(L0TriggerOnPNN) {cout << eop << endl;}
 	///if(L0TriggerOnPNN) lolololol
 
+
+	///Particle Selections 
 	///Kmu2Selection
 	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
 	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
@@ -580,7 +586,7 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hFullTrigStudy", 8); ///K3PiCounter
 	}
 	
-	
+	///labelling histograms
 	Int_t ix;
 	const Int_t nx1 = 9;
 	const Int_t nx2 = 7;
@@ -589,11 +595,11 @@ void TriggerStudy::Process(int iEvent){
 	const char *labels2[nx2] = {"L0PNN", "Main5", "Kmu2Selection","K2piCounter",
       "K3piCounter","Ke3Selection","Kmu3SelectionNoSpectrometer"};
 
-	TH1 *MyHisto1 = fHisto.GetHisto("hFullTrigStudy");  ///should be fine having this here
-	TH1 *MyHisto2 = fHisto.GetHisto("hL0PNNChar");  ///should be fine having this here
+	TH1 *MyHisto1 = fHisto.GetHisto("hFullTrigStudy");
+	TH1 *MyHisto2 = fHisto.GetHisto("hL0PNNChar"); 
 
-	for (ix=1;ix<=nx1;ix++) MyHisto1->GetXaxis()->SetBinLabel(ix,labels1[ix-1]); /// important
-	for (ix=1;ix<=nx2;ix++) MyHisto2->GetXaxis()->SetBinLabel(ix,labels2[ix-1]); /// important
+	for (ix=1;ix<=nx1;ix++) MyHisto1->GetXaxis()->SetBinLabel(ix,labels1[ix-1]); 
+	for (ix=1;ix<=nx2;ix++) MyHisto2->GetXaxis()->SetBinLabel(ix,labels2[ix-1]); 
 
 }
 
