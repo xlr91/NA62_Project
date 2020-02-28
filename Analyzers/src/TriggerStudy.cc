@@ -163,7 +163,11 @@ void TriggerStudy::InitHist(){
 
 	BookHisto("hFullTrigStudy", new TH1I("TriggerStudy", "Kaon_Decay_Characteristics_afterL0", 10, 0, 10));
 	BookHisto("hL0PNNChar", new TH1I("L0PNNChar", "L0PNN_Decay_Characteristics", 10, 0, 10));
-	BookHisto("hPTest", new TH1D("PTest", "Histogram_of_Pmomentum", 30000, -10000., 10000.));
+	BookHisto("hLKREnergy", new TH1D("LKREnergyTest", "Energy_Distro_of_LKR", 30, 0, 70000));
+	BookHisto("hPMom", new TH1D("PMomTest", "Momentum_Distro_from_Somewhere", 30, 0, 70000));
+	BookHisto("hEOP", new TH1D("EOPTest", "E/p_thing", 30, 0, 1.5));
+
+	
 
 
 	
@@ -499,6 +503,10 @@ void TriggerStudy::Process(int iEvent){
 
 	/// Momentum test
 	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
+
+	if (Tracks.size() != 1) {return;}
+	
+	
 	///try {Double_t Ptrack = Tracks[0].GetMomentum();
 	///	if (Ptrack){
 	///		cout<<Ptrack<<endl;
@@ -506,13 +514,16 @@ void TriggerStudy::Process(int iEvent){
 	///} 
 	///catch (...) { cout<<"Bad"<<endl; return;}
 
-	///Double_t Ptrack = Tracks[0].GetMomentum();
-	///Double_t eop = Tracks[0].GetLKrEnergy();
-	///if (!eop) { // this is the NULL check
-    ///    cout << "This is wrong" <<endl;
-    ///    return;
-	///	}
-	///cout << Ptrack << endl;
+	Double_t Ptrack = Tracks[0].GetMomentum();
+	Double_t LKREnergy = Tracks[0].GetLKrEnergy();
+
+	if (L0TriggerOnPNN) {
+		FillHisto("hLKREnergy", LKREnergy);
+		FillHisto("hPMom", Ptrack);
+		FillHisto("hEOP", LKREnergy/Ptrack);
+		///cout << LKREnergy << endl;
+	}
+	
 
 	///if(L0TriggerOnPNN) {cout << eop << endl;}
 	///if(L0TriggerOnPNN) lolololol
