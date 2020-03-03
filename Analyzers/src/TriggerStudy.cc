@@ -165,7 +165,11 @@ void TriggerStudy::InitHist(){
 	BookHisto("hL0PNNChar", new TH1I("L0PNNChar", "L0PNN_Decay_Characteristics", 10, 0, 10));
 	BookHisto("hLKREnergy", new TH1D("LKREnergyTest", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hPMom", new TH1D("PMomTest", "Momentum_Distro_from_Somewhere", 30, 0, 70000));
-	BookHisto("hEOP", new TH1D("EOPTest", "E/p_thing", 30, 0, 1.5));
+	BookHisto("hEOPCalc", new TH1D("EOPTestCalc", "E/p_thing", 30, 0, 1.5));
+	
+	BookHisto("hLKREoP",new TH1D("LKREOP", "E/p_thing", 30, 0, 1.5));
+	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
+	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
 
 
 	///Comments
@@ -258,7 +262,8 @@ void TriggerStudy::InitHist(){
 	BookCounter("Pi0Selection");
 	BookCounter("Main5");
 	
-	
+	BookCounter("ThreeTrack");
+	BookCounter("TwoTrackwLepton");
 
 
 	/// Tables
@@ -291,7 +296,8 @@ void TriggerStudy::InitHist(){
 
 
 
-	
+	AddCounterToEventFraction("TriggerAnalysis", "ThreeTrack");
+	AddCounterToEventFraction("TriggerAnalysis", "TwoTrackwLepton");
 
 
 }
@@ -494,6 +500,17 @@ void TriggerStudy::Process(int iEvent){
 	EventHeader* EvtHdr = GetEventHeader();
  	Int_t RunNumber = EvtHdr->GetRunID(); 
  	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
+	Bool_t ThreeTrack = *(Bool_t*)GetOutput("FilterThreeTracks.EventSelected");
+	///Bool_t TwoTrack = *(Bool_t*)GetOutput("FilterTwoTrackVertexWithLepton.EventSelected"); ///not good
+
+	if(ThreeTrack) {
+		IncrementCounter("ThreeTrack");
+	}
+	
+	///if(TwoTrack){
+	///	IncrementCounter("TwoTrackwLepton");
+	///}
+
 
 
 	if(PhysicsData) {
@@ -514,10 +531,19 @@ void TriggerStudy::Process(int iEvent){
 	Double_t Ptrack = Tracks[0].GetMomentum();
 	Double_t LKREnergy = Tracks[0].GetLKrEnergy();
 
+	Double_t LKREoP = Tracks[0].GetLKrEoP();
+	Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
+	Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
+
 	if (L0TriggerOnPNN) {
 		FillHisto("hLKREnergy", LKREnergy);
 		FillHisto("hPMom", Ptrack);
-		FillHisto("hEOP", LKREnergy/Ptrack);
+		FillHisto("hEOPCalc", LKREnergy/Ptrack);
+
+		FillHisto("hLKREoP", LKREoP);
+		FillHisto("hTotE", TotEnergy);
+		FillHisto("hTotEoP",TotEoP);
+		
 		///cout << LKREnergy << endl;
 	}
 
