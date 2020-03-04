@@ -264,6 +264,7 @@ void TriggerStudy::InitHist(){
 	
 	BookCounter("ThreeTrack");
 	BookCounter("TwoTrackwLepton");
+	BookCounter("notAutopass");
 
 
 	/// Tables
@@ -272,6 +273,7 @@ void TriggerStudy::InitHist(){
 
 	AddCounterToEventFraction("TriggerAnalysis", "TotalEvent");
  	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
+	AddCounterToEventFraction("TriggerAnalysis", "notAutopass");
  	AddCounterToEventFraction("TriggerAnalysis", "L0PNN");
 	
 	AddCounterToEventFraction("TriggerAnalysis", "Kmu2Selection");
@@ -497,22 +499,23 @@ void TriggerStudy::Process(int iEvent){
  	Int_t  L0DataType     = L0Packet->GetDataType();
 	Bool_t PhysicsData = L0DataType & 0x1; 	
  
-	EventHeader* EvtHdr = GetEventHeader();
+	EventHeader* EvtHdr = GetEventHeader(); ///this is important for l1autopass
  	Int_t RunNumber = EvtHdr->GetRunID(); 
  	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
 	Bool_t ThreeTrack = *(Bool_t*)GetOutput("FilterThreeTracks.EventSelected");
 	///Bool_t TwoTrack = *(Bool_t*)GetOutput("FilterTwoTrackVertexWithLepton.EventSelected"); ///not good
 
+	///Bool_t TriggerConditions::L1TriggerAutopass(EvtHdr); ///level 1 trigger autopass thing 
+	Bool_t autopass = TriggerConditions::GetInstance()->L1TriggerAutopass(GetEventHeader());
+	if (autopass == false) {
+		IncrementCounter("notAutopass");
+		return;
+	}
+
 	if(ThreeTrack) {
 		IncrementCounter("ThreeTrack");
 	}
 	
-	///if(TwoTrack){
-	///	IncrementCounter("TwoTrackwLepton");
-	///}
-
-
-
 	if(PhysicsData) {
 		IncrementCounter("PhysicsEvent");
 		FillHisto("hFullTrigStudy", 1); ///Physics Events
@@ -527,13 +530,21 @@ void TriggerStudy::Process(int iEvent){
 
 	/// EOP tests (Help from KMu2Selection.cc)
 	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
+	/// do loop over all the vectors if you want
 	if (Tracks.size() != 1) {return;}
-	Double_t Ptrack = Tracks[0].GetMomentum();
-	Double_t LKREnergy = Tracks[0].GetLKrEnergy();
+	Double_t Ptrack = Tracks[0].GetMomentum(); ///good sht
+	Double_t LKREnergy = Tracks[0].GetLKrEnergy(); ///good sht
 
-	Double_t LKREoP = Tracks[0].GetLKrEoP();
+	Double_t LKREoP = Tracks[0].GetLKrEoP(); ///good sht
 	Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
 	Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
+
+
+	///Bool_t TriggerConditions::L1TriggerAutopass(	EventHeader * 	EvtHdr	); ///level 1 trigger autopass thing 
+
+	///for the MC study, use the l0trigger emulator hh and cc to find the way to the specific emulator, and then the definition is there
+	
+
 
 	if (L0TriggerOnPNN) {
 		FillHisto("hLKREnergy", LKREnergy);
