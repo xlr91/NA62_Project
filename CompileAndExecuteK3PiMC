@@ -1,0 +1,4 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build K3PiMCConfig
+./bin-cc7/K3PiMC -i ../../na62_mc_files/k3pi/reco_c10_dr8094_r3186910.root -o K3PiMCTest.root

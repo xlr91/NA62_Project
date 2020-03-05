@@ -171,6 +171,8 @@ void TriggerStudy::InitHist(){
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
 
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
+
 
 	///Comments
 		/// If isAutotUpdate is true, this histogram will be drawn and updated regularly during the processing (default=false).\n
@@ -505,8 +507,8 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t ThreeTrack = *(Bool_t*)GetOutput("FilterThreeTracks.EventSelected");
 	///Bool_t TwoTrack = *(Bool_t*)GetOutput("FilterTwoTrackVertexWithLepton.EventSelected"); ///not good
 
-	///Bool_t TriggerConditions::L1TriggerAutopass(EvtHdr); ///level 1 trigger autopass thing 
-	Bool_t autopass = TriggerConditions::GetInstance()->L1TriggerAutopass(GetEventHeader());
+
+	Bool_t autopass = TriggerConditions::GetInstance()->L1TriggerAutopass(GetEventHeader()); ///L1Trigger autopass
 	if (autopass == false) {
 		IncrementCounter("notAutopass");
 		return;
@@ -539,6 +541,8 @@ void TriggerStudy::Process(int iEvent){
 	Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
 	Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
 
+	Double_t RichRing = Tracks[0].GetRICHRingRadius();
+
 
 	///Bool_t TriggerConditions::L1TriggerAutopass(	EventHeader * 	EvtHdr	); ///level 1 trigger autopass thing 
 
@@ -554,6 +558,8 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hLKREoP", LKREoP);
 		FillHisto("hTotE", TotEnergy);
 		FillHisto("hTotEoP",TotEoP);
+		FillHisto("hRICHring", Ptrack, RichRing);
+		///cout << RichRing << endl;
 		
 		///cout << LKREnergy << endl;
 	}
@@ -721,6 +727,7 @@ void TriggerStudy::DrawPlot(){
 	/// \endcode
 	/// and manipulate it as usual (TCanvas, Draw, ...)\n
 	/// \EndMemberDescr
+
 }
 
 TriggerStudy::~TriggerStudy(){
