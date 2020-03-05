@@ -7,6 +7,7 @@
 #include "functions.hh"
 #include "Event.hh"
 #include "Persistency.hh"
+#include "L0PrimitiveHandler.hh"
 using namespace std;
 using namespace NA62Analysis;
 using namespace NA62Constants;
@@ -172,6 +173,9 @@ void TriggerStudy::InitHist(){
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
+	
+	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "E/p_thing", 30, 0, 1.5));
+	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
 
 
 	///Comments
@@ -268,10 +272,22 @@ void TriggerStudy::InitHist(){
 	BookCounter("TwoTrackwLepton");
 	BookCounter("notAutopass");
 
+	BookCounter("TotalEoP_counts");
+	BookCounter("MuonExcluded");
+	BookCounter("ElectronExcluded");
+	BookCounter("Remains");
+
+	BookCounter("TotalRich_counts");
+	BookCounter("Rich_Included");
+	BookCounter("Rich_Excluded");
+
+
 
 	/// Tables
 	NewEventFraction("TriggerAnalysis");
 	NewEventFraction("L0PNNAnalysis");
+	NewEventFraction("EoPCuts");
+	NewEventFraction("RichCuts");
 
 	AddCounterToEventFraction("TriggerAnalysis", "TotalEvent");
  	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
@@ -284,6 +300,9 @@ void TriggerStudy::InitHist(){
 	AddCounterToEventFraction("TriggerAnalysis", "Ke3Selection");
 	AddCounterToEventFraction("TriggerAnalysis", "Kmu3SelectionNoSpectrometer");
 	AddCounterToEventFraction("TriggerAnalysis", "Pi0Selection");
+	AddCounterToEventFraction("TriggerAnalysis", "ThreeTrack");
+	AddCounterToEventFraction("TriggerAnalysis", "TwoTrackwLepton");
+
 	DefineSampleSizeCounter("TriggerAnalysis", "TotalEvent");
 
 
@@ -295,13 +314,24 @@ void TriggerStudy::InitHist(){
 	AddCounterToEventFraction("L0PNNAnalysis", "K3piCounter");
 	AddCounterToEventFraction("L0PNNAnalysis", "Ke3Selection");
 	AddCounterToEventFraction("L0PNNAnalysis", "Kmu3SelectionNoSpectrometer");
-
 	DefineSampleSizeCounter("L0PNNAnalysis", "L0PNN");
 
 
 
-	AddCounterToEventFraction("TriggerAnalysis", "ThreeTrack");
-	AddCounterToEventFraction("TriggerAnalysis", "TwoTrackwLepton");
+	
+
+	AddCounterToEventFraction("EoPCuts", "TotalEoP_counts");
+	AddCounterToEventFraction("EoPCuts", "MuonExcluded");
+	AddCounterToEventFraction("EoPCuts", "ElectronExcluded");
+	AddCounterToEventFraction("EoPCuts", "Remains");
+	DefineSampleSizeCounter("EoPCuts", "TotalEoP_counts");
+
+	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
+	AddCounterToEventFraction("RichCuts", "Rich_Included");
+	AddCounterToEventFraction("RichCuts", "Rich_Excluded");
+	DefineSampleSizeCounter("RichCuts", "TotalEoP_counts");
+	
+	
 
 
 }
@@ -540,7 +570,6 @@ void TriggerStudy::Process(int iEvent){
 	Double_t LKREoP = Tracks[0].GetLKrEoP(); ///good sht
 	Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
 	Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
-
 	Double_t RichRing = Tracks[0].GetRICHRingRadius();
 
 
@@ -560,8 +589,35 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hTotEoP",TotEoP);
 		FillHisto("hRICHring", Ptrack, RichRing);
 		///cout << RichRing << endl;
-		
 		///cout << LKREnergy << endl;
+		
+
+		///EoP Cuts
+		IncrementCounter("TotalEoP_counts");
+		if (LKREoP < 0.2) {
+			IncrementCounter("MuonExcluded");
+		}
+		else if (LKREoP >0.9){
+			IncrementCounter("ElectronExcluded");
+		}
+		else
+		{
+			IncrementCounter("Remains");
+			FillHisto("hLKREoP_cuts", LKREoP);
+		}
+
+
+		
+		///Rich Cuts
+		IncrementCounter("TotalRich_counts");
+
+		if(Ptrack > 15000 && Ptrack < 35000 && RichRing < 180){
+			IncrementCounter("Rich_Included");
+			FillHisto("hRICHring_cuts", Ptrack, RichRing);
+		}
+		else {
+			IncrementCounter("Rich_Excluded");
+		}
 	}
 
 

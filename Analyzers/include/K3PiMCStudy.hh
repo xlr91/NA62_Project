@@ -8,6 +8,19 @@
 #include <TCanvas.h>
 #include "TriggerConditions.hh"
 
+#include "L0PrimitiveHandler.hh"
+#include "K3piSelection.hh"
+#include "GeometricAcceptance.hh"
+#include "DownstreamTrack.hh"
+#include "SpectrometerTrackVertex.hh"
+#include "TProfile.h"
+#include "TF1.h"
+#include "TLegend.h"
+#include "TArrow.h"
+#include "BeamParameters.hh"
+#include "LAVMatching.hh"
+#include "ConfigSettings.hh"
+
 class TH1I;
 class TH2F;
 class TGraph;
@@ -32,7 +45,8 @@ class K3PiMCStudy : public NA62Analysis::Analyzer
         void EndOfJobUser();
 		void DrawPlot();
 	protected:
-Int_t fTriggerMaskPNN;
 
+Int_t fTriggerMaskPNN;
+L0PrimitiveHandler* fPrimitiveHandler;
 };
 #endif

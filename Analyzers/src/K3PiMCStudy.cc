@@ -6,6 +6,20 @@
 #include "functions.hh"
 #include "Event.hh"
 #include "Persistency.hh"
+
+#include "L0PrimitiveHandler.hh"
+#include "K3piSelection.hh"
+#include "GeometricAcceptance.hh"
+#include "DownstreamTrack.hh"
+#include "SpectrometerTrackVertex.hh"
+#include "TProfile.h"
+#include "TF1.h"
+#include "TLegend.h"
+#include "TArrow.h"
+#include "BeamParameters.hh"
+#include "LAVMatching.hh"
+#include "ConfigSettings.hh"
+
 using namespace std;
 using namespace NA62Analysis;
 using namespace NA62Constants;
@@ -109,10 +123,15 @@ K3PiMCStudy::K3PiMCStudy(Core::BaseAnalysis *ba) : Analyzer(ba, "K3PiMCStudy")
 		/// \endcode
 		/// where val is a value in nanoseconds.
 	/// \EndMemberDescr
-
+	RequestTree("RICH",  new TRecoRICHEvent,  "Reco");
 	RequestL0Data();
 	RequestL1Data();
 	fTriggerMaskPNN  = TriggerConditions::GetInstance()->GetL0TriggerID("RICH-nQX-UTMC-nMUV-nLKr30");
+	
+	///L0PrimitiveHandler* fPrimitiveHandler = L0PrimitiveHandler::GetInstance();
+	fPrimitiveHandler = L0PrimitiveHandler::GetInstance();
+	
+	fPrimitiveHandler->DeclareL0Emulators(fParent, kL0RICH, kL0NewCHOD, kL0MUV3);
 
 
 }
@@ -271,6 +290,11 @@ void K3PiMCStudy::StartOfRunUser(){
 		/// This method is called at the beginning of the processing (corresponding to a start of run in the normal NA62 data taking)\n
 		/// Do here your start of run processing if any
 	/// \EndMemberDescr
+	Int_t fStartOfRunTime = GetBurstTime();
+
+	fPrimitiveHandler -> SetRunID(GetRunID());
+	fPrimitiveHandler -> ConfigureL0Emulators();
+
 }
 
 void K3PiMCStudy::StartOfBurstUser(){
@@ -278,6 +302,10 @@ void K3PiMCStudy::StartOfBurstUser(){
 		/// This method is called when a new file is opened in the ROOT TChain (corresponding to a start/end of burst in the normal NA62 data taking) + at the beginning of the first file\n
 		/// Do here your start/end of burst processing if any
 	/// \EndMemberDescr
+
+	///Check if MC or na
+	Bool_t fFastSimulation = false;
+	if (GetWithMC()) fFastSimulation = GetStreamInfo() -> GetMCInfo().GetFastSimulationMode();
 }
 
 void K3PiMCStudy::ProcessSpecialTriggerUser(int iEvent, unsigned int triggerType){
@@ -423,16 +451,23 @@ void K3PiMCStudy::Process(int iEvent){
 	///if(fMCSimple.fStatus == MCSimple::kMissing){printIncompleteMCWarning(iEvent);return;}
 	///if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
 
+	if (!GetWithEventHeader()) return;
 	IncrementCounter("TotalEvents");
 	L0TPData* L0Packet = GetL0Data();
 	Int_t  L0DataType     = L0Packet->GetDataType();
 	EventHeader* EvtHdr = GetEventHeader();
 	Int_t RunNumber = EvtHdr->GetRunID(); 
 	Bool_t PhysicsData = L0DataType & 0x1; 
-	
-	
-	
 	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
+	
+	if (GetWithMC()){
+		Event *evt = GetMCEvent();
+	}
+	fPrimitiveHandler -> SetData(GetL0Data(), GetRunID());
+	Int_t RichTime = fPrimitiveHandler->GetTriggerTime(kL0RICH);
+	Bool_t QX_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("QX", RichTime);
+	cout<<QX_ok_emu<<endl; ///IT WORKS 
+	WORK ON THIS
 
 	
 	if(PhysicsData) {
@@ -443,7 +478,7 @@ void K3PiMCStudy::Process(int iEvent){
 		IncrementCounter("PassedL0Trigger");
 	}
 
-	/// K3PiSelectoin
+	/// K3PiSelection
 	NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
 	Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
 	
