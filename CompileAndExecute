@@ -1,4 +1,6 @@
 #!/bin/bash
 source scripts/env.sh 
 NA62AnalysisBuilder.py build TriggerConfig
-./bin-cc7/TriggerStudyExec -i ../../na62_data_files/na62_2017.008252.v1.1.6-01_f.v1.1.6-01.008252-0208-0217_PNN.root.1 -o TrigOut.root
+ls /disk/moose/general/GroupStudies/2020/na62_data_files/* > AllNA62Data.lst
+./bin-cc7/myExecutable -l AllNA62Data.lst -o TrigOut.root
+rm AllNA62Data.lst

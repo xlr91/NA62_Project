@@ -171,9 +171,10 @@ void TriggerStudy::InitHist(){
 	BookHisto("hLKREoP",new TH1D("LKREOP", "E/p_thing", 30, 0, 1.5));
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
+	BookHisto("hRICHMissingMass", new TH1D("RichMissingMass", "MissingMassReco", 100, -0.02, 0.04));
+	
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
-	
 	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "E/p_thing", 30, 0, 1.5));
 	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
 
@@ -541,7 +542,7 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t autopass = TriggerConditions::GetInstance()->L1TriggerAutopass(GetEventHeader()); ///L1Trigger autopass
 	if (autopass == false) {
 		IncrementCounter("notAutopass");
-		return;
+		return; ///TURN THIS BACK ONN
 	}
 
 	if(ThreeTrack) {
@@ -567,10 +568,15 @@ void TriggerStudy::Process(int iEvent){
 	Double_t Ptrack = Tracks[0].GetMomentum(); ///good sht
 	Double_t LKREnergy = Tracks[0].GetLKrEnergy(); ///good sht
 
+	
+
 	Double_t LKREoP = Tracks[0].GetLKrEoP(); ///good sht
 	Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
 	Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
 	Double_t RichRing = Tracks[0].GetRICHRingRadius();
+	Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
+	///cout << RichMass << endl;
+	
 
 
 	///Bool_t TriggerConditions::L1TriggerAutopass(	EventHeader * 	EvtHdr	); ///level 1 trigger autopass thing 
@@ -588,6 +594,7 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hTotE", TotEnergy);
 		FillHisto("hTotEoP",TotEoP);
 		FillHisto("hRICHring", Ptrack, RichRing);
+		FillHisto("hRICHMissingMass", RichMass*RichMass/1000000);
 		///cout << RichRing << endl;
 		///cout << LKREnergy << endl;
 		
@@ -740,6 +747,51 @@ void TriggerStudy::EndOfJobUser(){
 	/// \code
 	/// 	SaveAllPlots();
 	SaveAllPlots();
+
+	///PDF_Files/TriggerStudy
+	///Could have used iterator but just need this to work
+
+	TCanvas *c = new TCanvas;
+	
+	fHisto.GetTH1("hFullTrigStudy")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hFullTrigStudy.pdf");
+
+	fHisto.GetTH1("hL0PNNChar")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hL0PNNChar.pdf");
+	
+	fHisto.GetTH1("hLKREnergy")->Draw();
+	///c->SaveAs("PDF_Files/TriggerStudy/hLKREnergy.pdf");
+
+	fHisto.GetTH1("hPMom")->Draw();
+	///c->SaveAs("PDF_Files/TriggerStudy/hPMom.pdf");
+
+	fHisto.GetTH1("hEOPCalc")->Draw();
+	///c->SaveAs("PDF_Files/TriggerStudy/hEOPCalc.pdf");
+
+
+	fHisto.GetTH1("hLKREoP")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP.pdf");
+
+	fHisto.GetTH1("hTotE")->Draw();
+	///c->SaveAs("PDF_Files/TriggerStudy/hTotE.pdf");
+
+	fHisto.GetTH1("hTotEoP")->Draw();
+	///c->SaveAs("PDF_Files/TriggerStudy/hTotEoP.pdf");
+	fHisto.GetTH1("hRICHMissingMass")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass.pdf");
+
+
+	fHisto.GetTH2("hRICHring")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hRICHring.pdf");
+
+	fHisto.GetTH1("hLKREoP_cuts")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP_cuts.pdf");
+	
+	fHisto.GetTH2("hRICHring_cuts")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hRICHring_cuts.pdf");
+	delete c;
+   
+
 	/// \endcode
 	/// Or you can just save the ones you want with\n
 	/// \code

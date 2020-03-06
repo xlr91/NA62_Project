@@ -131,7 +131,7 @@ K3PiMCStudy::K3PiMCStudy(Core::BaseAnalysis *ba) : Analyzer(ba, "K3PiMCStudy")
 	///L0PrimitiveHandler* fPrimitiveHandler = L0PrimitiveHandler::GetInstance();
 	fPrimitiveHandler = L0PrimitiveHandler::GetInstance();
 	
-	fPrimitiveHandler->DeclareL0Emulators(fParent, kL0RICH, kL0NewCHOD, kL0MUV3);
+	fPrimitiveHandler->DeclareL0Emulators(fParent, kL0RICH, kL0NewCHOD, kL0MUV3, kL0Calo);
 
 
 }
@@ -254,12 +254,26 @@ void K3PiMCStudy::InitHist(){
 	BookCounter("PhysicsEvents");
 	BookCounter("PassedL0Trigger");
 	BookCounter("K3PiSelected");
-
+	BookCounter("QX_ok");
+	BookCounter("MUV_ok");
+	BookCounter("UTMC_ok");
+	BookCounter("RICH_ok");
+	BookCounter("L0PNN_ok");
+	
+	
 	NewEventFraction("K3PiMC");
 	AddCounterToEventFraction("K3PiMC", "TotalEvents");
 	AddCounterToEventFraction("K3PiMC", "PhysicsEvents");
 	AddCounterToEventFraction("K3PiMC", "PassedL0Trigger");
+	AddCounterToEventFraction("K3PiMC", "QX_ok");
+	AddCounterToEventFraction("K3PiMC", "MUV_ok");
+	AddCounterToEventFraction("K3PiMC", "UTMC_ok");
+	AddCounterToEventFraction("K3PiMC", "RICH_ok");
+	AddCounterToEventFraction("K3PiMC", "L0PNN_ok");
 	AddCounterToEventFraction("K3PiMC", "K3PiSelected");
+
+	
+	
 	DefineSampleSizeCounter("K3PiMC", "TotalEvents");
 }
 
@@ -294,6 +308,7 @@ void K3PiMCStudy::StartOfRunUser(){
 
 	fPrimitiveHandler -> SetRunID(GetRunID());
 	fPrimitiveHandler -> ConfigureL0Emulators();
+	///fPrimitiveHandler -> SetDebug(true);
 
 }
 
@@ -466,9 +481,33 @@ void K3PiMCStudy::Process(int iEvent){
 	fPrimitiveHandler -> SetData(GetL0Data(), GetRunID());
 	Int_t RichTime = fPrimitiveHandler->GetTriggerTime(kL0RICH);
 	Bool_t QX_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("QX", RichTime);
-	cout<<QX_ok_emu<<endl; ///IT WORKS 
-	WORK ON THIS
+	Bool_t MUV_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("MUV", RichTime);
 
+	Bool_t UTMC_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("UTMC", RichTime);
+	Bool_t RICH_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("RICH", RichTime);
+	Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("E20", RichTime);
+
+	///"RICH-nQX-UTMC-nMUV-nLKr30"
+	
+	///missing LKr30
+	if(!QX_ok_emu) IncrementCounter("QX_ok");
+	if(!MUV_ok_emu) IncrementCounter("MUV_ok");
+	if(UTMC_ok_emu) IncrementCounter("UTMC_ok");
+	if(RICH_ok_emu) IncrementCounter("RICH_ok");
+
+	if(RICH_ok_emu && !QX_ok_emu && UTMC_ok_emu && !MUV_ok_emu) {
+		IncrementCounter("L0PNN_ok");
+		/// K3PiSelection
+		NA62Analysis::UserMethods::OutputState state_3pi; // can choose name of variable
+		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
+		
+		if(K3PiSelected) {
+			IncrementCounter("K3PiSelected");
+			}
+	}
+
+	
+	
 	
 	if(PhysicsData) {
 		IncrementCounter("PhysicsEvents");
@@ -478,13 +517,7 @@ void K3PiMCStudy::Process(int iEvent){
 		IncrementCounter("PassedL0Trigger");
 	}
 
-	/// K3PiSelection
-	NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
-	Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
-	
-	if(K3PiSelected) {
-		IncrementCounter("K3PiSelected");
-		}
+
 }
 
 void K3PiMCStudy::PostProcess(){
@@ -544,6 +577,9 @@ void K3PiMCStudy::EndOfJobUser(){
 		/// Although this is described here, Iterators can be used anywhere after the
 		/// histograms have been booked.
     /// \EndMemberDescr
+	fPrimitiveHandler->PrintDetectorKey();
+	fPrimitiveHandler->PrintDetectorBits();
+	fPrimitiveHandler->PrintKnownBitNames(GetRunID());
 }
 
 void K3PiMCStudy::DrawPlot(){
@@ -570,3 +606,6 @@ K3PiMCStudy::~K3PiMCStudy(){
 	/// members, delete them here.
 	/// \EndMemberDescr
 }
+
+///check emulatedl0primitive
+///and l0emulators
