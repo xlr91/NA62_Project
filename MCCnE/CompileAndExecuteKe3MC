@@ -1,0 +1,4 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build MCConfig/Ke3MCConfig
+./bin-cc7/Ke3MC -l MCList/ke3.lst -o Ke3MC.root

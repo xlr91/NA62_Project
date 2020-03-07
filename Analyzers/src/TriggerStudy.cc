@@ -172,6 +172,7 @@ void TriggerStudy::InitHist(){
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
 	BookHisto("hRICHMissingMass", new TH1D("RichMissingMass", "MissingMassReco", 100, -0.02, 0.04));
+	BookHisto("hRICHMissingMass_cuts", new TH1D("RichMissingMass_cuts", "MissingMassReco", 100, -0.02, 0.04));
 	
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
@@ -282,6 +283,10 @@ void TriggerStudy::InitHist(){
 	BookCounter("Rich_Included");
 	BookCounter("Rich_Excluded");
 
+	BookCounter("RecoMass_Included");
+	BookCounter("RecoMass_Excluded");
+
+
 
 
 	/// Tables
@@ -289,6 +294,7 @@ void TriggerStudy::InitHist(){
 	NewEventFraction("L0PNNAnalysis");
 	NewEventFraction("EoPCuts");
 	NewEventFraction("RichCuts");
+	NewEventFraction("RecoMassCuts");
 
 	AddCounterToEventFraction("TriggerAnalysis", "TotalEvent");
  	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
@@ -330,7 +336,12 @@ void TriggerStudy::InitHist(){
 	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
 	AddCounterToEventFraction("RichCuts", "Rich_Included");
 	AddCounterToEventFraction("RichCuts", "Rich_Excluded");
-	DefineSampleSizeCounter("RichCuts", "TotalEoP_counts");
+	DefineSampleSizeCounter("RichCuts", "TotalRich_counts");
+	
+	AddCounterToEventFraction("RecoMassCuts", "TotalRich_counts");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_Included");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_Excluded");
+	DefineSampleSizeCounter("RecoMassCuts", "TotalRich_counts");
 	
 	
 
@@ -542,50 +553,114 @@ void TriggerStudy::Process(int iEvent){
 	Bool_t autopass = TriggerConditions::GetInstance()->L1TriggerAutopass(GetEventHeader()); ///L1Trigger autopass
 	if (autopass == false) {
 		IncrementCounter("notAutopass");
-		return; ///TURN THIS BACK ONN
+		return;
 	}
 
 	if(ThreeTrack) {
 		IncrementCounter("ThreeTrack");
 	}
-	
 	if(PhysicsData) {
 		IncrementCounter("PhysicsEvent");
 		FillHisto("hFullTrigStudy", 1); ///Physics Events
 	}
 
+	///for the MC study, use the l0trigger emulator hh and cc to find the way to the specific emulator, and then the definition is there
+	/// EOP tests (Help from KMu2Selection.cc)
+	/// do loop over all the vectors if you want
+	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
+	
+	///L0TriggerOnPNN = true;
+
     if(L0TriggerOnPNN) {
+
+
 		IncrementCounter("L0PNN"); 
 		FillHisto("hFullTrigStudy", 2); ///L0PNN
 		FillHisto("hL0PNNChar", 0);
-	}
-	
-
-	/// EOP tests (Help from KMu2Selection.cc)
-	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
-	/// do loop over all the vectors if you want
-	if (Tracks.size() != 1) {return;}
-	Double_t Ptrack = Tracks[0].GetMomentum(); ///good sht
-	Double_t LKREnergy = Tracks[0].GetLKrEnergy(); ///good sht
 
 	
 
-	Double_t LKREoP = Tracks[0].GetLKrEoP(); ///good sht
-	Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
-	Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
-	Double_t RichRing = Tracks[0].GetRICHRingRadius();
-	Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
-	///cout << RichMass << endl;
-	
+		///Particle Selections 
+		///Kmu2Selection
+		NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
+		Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
+		if(Kmu2Selected) {
+			IncrementCounter("Kmu2Selection");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 2);
+			FillHisto("hFullTrigStudy", 3); ///K3PiCounter
+		}
 
+		///K2pi Selection
+		NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
+		Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
+		if(K2PiSelected) {
+			IncrementCounter("K2piCounter");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 3);
+			FillHisto("hFullTrigStudy", 4); ///K3PiCounter
+		}
 
-	///Bool_t TriggerConditions::L1TriggerAutopass(	EventHeader * 	EvtHdr	); ///level 1 trigger autopass thing 
+		/// K3PiSelectoin
+		NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
+		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
+		
+		if(K3PiSelected) {
+			IncrementCounter("K3piCounter");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 4);
+			FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+			}
 
-	///for the MC study, use the l0trigger emulator hh and cc to find the way to the specific emulator, and then the definition is there
-	
+		///Ke3Selection
+		NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
+		Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
+		if(Ke3Selected) {
+			IncrementCounter("Ke3Selection");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 5);
+			FillHisto("hFullTrigStudy", 6); ///K3PiCounter
+		}
+		
+		///Kmu3SelectionNoSpectrometer
+		NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
+		Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
+		if(Kmu3Selected) {
+			IncrementCounter("Kmu3SelectionNoSpectrometer");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 6);
+			FillHisto("hFullTrigStudy", 7); ///K3PiCounter
+		}
 
+		///Pi0Selection
+		NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
+		Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
+		if(K0PiSelected) {
+			IncrementCounter("Pi0Selection");
+			FillHisto("hFullTrigStudy", 8); ///K3PiCounter
+		}
+		
 
-	if (L0TriggerOnPNN) {
+		if (Tracks.size() != 1) {return;}
+		///next up: try to loop over the vectors
+
+		Double_t Ptrack = Tracks[0].GetMomentum(); ///good sht
+		Double_t LKREnergy = Tracks[0].GetLKrEnergy(); ///good sht
+		Double_t LKREoP = Tracks[0].GetLKrEoP(); ///good sht
+		Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
+		Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
+
+		Double_t RichRing = Tracks[0].GetRICHRingRadius();
+		Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
+		Double_t RichMass2 = RichMass*RichMass/1000000;
+		Double_t LowMassLim = 0.005;
+		Double_t HighMassLim = 0.015;
+
 		FillHisto("hLKREnergy", LKREnergy);
 		FillHisto("hPMom", Ptrack);
 		FillHisto("hEOPCalc", LKREnergy/Ptrack);
@@ -594,9 +669,8 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hTotE", TotEnergy);
 		FillHisto("hTotEoP",TotEoP);
 		FillHisto("hRICHring", Ptrack, RichRing);
-		FillHisto("hRICHMissingMass", RichMass*RichMass/1000000);
-		///cout << RichRing << endl;
-		///cout << LKREnergy << endl;
+		FillHisto("hRICHMissingMass", RichMass2);
+
 		
 
 		///EoP Cuts
@@ -613,11 +687,8 @@ void TriggerStudy::Process(int iEvent){
 			FillHisto("hLKREoP_cuts", LKREoP);
 		}
 
-
-		
 		///Rich Cuts
 		IncrementCounter("TotalRich_counts");
-
 		if(Ptrack > 15000 && Ptrack < 35000 && RichRing < 180){
 			IncrementCounter("Rich_Included");
 			FillHisto("hRICHring_cuts", Ptrack, RichRing);
@@ -625,77 +696,17 @@ void TriggerStudy::Process(int iEvent){
 		else {
 			IncrementCounter("Rich_Excluded");
 		}
-	}
-
-
-	///Particle Selections 
-	///Kmu2Selection
-	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
-	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
-	if(Kmu2Selected) {
-		IncrementCounter("Kmu2Selection");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 2);
-		FillHisto("hFullTrigStudy", 3); ///K3PiCounter
-	}
-
-	///K2pi Selection
-	NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
-	Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
-	if(K2PiSelected) {
-		IncrementCounter("K2piCounter");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 3);
-		FillHisto("hFullTrigStudy", 4); ///K3PiCounter
-	}
-
-	/// K3PiSelectoin
-	NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
-	Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
 	
-	if(K3PiSelected) {
-		IncrementCounter("K3piCounter");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 4);
-		FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+		///RecoMass Cuts
+		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
+			IncrementCounter("RecoMass_Included");
+			FillHisto("hRICHMissingMass_cuts", RichMass2);
+		}
+		else{
+			IncrementCounter("RecoMass_Excluded");
 		}
 
-	///Ke3Selection
-	NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
-	Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
-	if(Ke3Selected) {
-		IncrementCounter("Ke3Selection");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 5);
-		FillHisto("hFullTrigStudy", 6); ///K3PiCounter
 	}
-	
-	///Kmu3SelectionNoSpectrometer
-	NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
-	Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
-	if(Kmu3Selected) {
-		IncrementCounter("Kmu3SelectionNoSpectrometer");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 6);
-		FillHisto("hFullTrigStudy", 7); ///K3PiCounter
-	}
-
-	///Pi0Selection
-	NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
-	Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
-	if(K0PiSelected) {
-		IncrementCounter("Pi0Selection");
-		FillHisto("hFullTrigStudy", 8); ///K3PiCounter
-	}
-	
-
-
-
 
 	///labelling histograms
 	Int_t ix;
@@ -777,6 +788,10 @@ void TriggerStudy::EndOfJobUser(){
 
 	fHisto.GetTH1("hTotEoP")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hTotEoP.pdf");
+
+	fHisto.GetTH1("hRICHMissingMass_cuts")->Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass_cuts.pdf");
+	
 	fHisto.GetTH1("hRICHMissingMass")->Draw();
 	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass.pdf");
 

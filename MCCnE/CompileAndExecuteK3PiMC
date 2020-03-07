@@ -1,0 +1,4 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build MCConfig/K3PiMCConfig
+./bin-cc7/K3PiMC -l MCList/k3pi.lst -o K3PiMC.root

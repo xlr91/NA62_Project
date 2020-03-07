@@ -8,7 +8,7 @@
 #include "Persistency.hh"
 
 #include "L0PrimitiveHandler.hh"
-#include "K3piSelection.hh"
+#include "K3piSelection.hh" ///change for others
 #include "GeometricAcceptance.hh"
 #include "DownstreamTrack.hh"
 #include "SpectrometerTrackVertex.hh"
@@ -123,7 +123,7 @@ K3PiMCStudy::K3PiMCStudy(Core::BaseAnalysis *ba) : Analyzer(ba, "K3PiMCStudy")
 		/// \endcode
 		/// where val is a value in nanoseconds.
 	/// \EndMemberDescr
-	RequestTree("RICH",  new TRecoRICHEvent,  "Reco");
+	RequestTree("RICH",  new TRecoRICHEvent,  "Reco"); ///is this required?
 	RequestL0Data();
 	RequestL1Data();
 	fTriggerMaskPNN  = TriggerConditions::GetInstance()->GetL0TriggerID("RICH-nQX-UTMC-nMUV-nLKr30");
@@ -253,28 +253,30 @@ void K3PiMCStudy::InitHist(){
 	BookCounter("TotalEvents");
 	BookCounter("PhysicsEvents");
 	BookCounter("PassedL0Trigger");
-	BookCounter("K3PiSelected");
+	BookCounter("K3PiSelected"); ///change for others
 	BookCounter("QX_ok");
 	BookCounter("MUV_ok");
 	BookCounter("UTMC_ok");
 	BookCounter("RICH_ok");
+	BookCounter("LKr30_ok");
 	BookCounter("L0PNN_ok");
 	
-	
-	NewEventFraction("K3PiMC");
-	AddCounterToEventFraction("K3PiMC", "TotalEvents");
-	AddCounterToEventFraction("K3PiMC", "PhysicsEvents");
-	AddCounterToEventFraction("K3PiMC", "PassedL0Trigger");
-	AddCounterToEventFraction("K3PiMC", "QX_ok");
-	AddCounterToEventFraction("K3PiMC", "MUV_ok");
-	AddCounterToEventFraction("K3PiMC", "UTMC_ok");
-	AddCounterToEventFraction("K3PiMC", "RICH_ok");
-	AddCounterToEventFraction("K3PiMC", "L0PNN_ok");
-	AddCounterToEventFraction("K3PiMC", "K3PiSelected");
+	TString name = "K3PiMC"; ///change for others
+	NewEventFraction(name); 
+	AddCounterToEventFraction(name, "TotalEvents");
+	AddCounterToEventFraction(name, "PhysicsEvents");
+	AddCounterToEventFraction(name, "PassedL0Trigger");
+	AddCounterToEventFraction(name, "QX_ok");
+	AddCounterToEventFraction(name, "MUV_ok");
+	AddCounterToEventFraction(name, "UTMC_ok");
+	AddCounterToEventFraction(name, "RICH_ok");
+	AddCounterToEventFraction(name, "LKr30_ok");
+	AddCounterToEventFraction(name, "L0PNN_ok");
+	AddCounterToEventFraction(name, "K3PiSelected"); ///change for others
 
 	
 	
-	DefineSampleSizeCounter("K3PiMC", "TotalEvents");
+	DefineSampleSizeCounter(name, "TotalEvents");
 }
 
 void K3PiMCStudy::DefineMCSimple(){
@@ -494,15 +496,17 @@ void K3PiMCStudy::Process(int iEvent){
 	if(!MUV_ok_emu) IncrementCounter("MUV_ok");
 	if(UTMC_ok_emu) IncrementCounter("UTMC_ok");
 	if(RICH_ok_emu) IncrementCounter("RICH_ok");
+	if(!LKr30_ok_emu) IncrementCounter("LKr30_ok");
 
-	if(RICH_ok_emu && !QX_ok_emu && UTMC_ok_emu && !MUV_ok_emu) {
+	if(RICH_ok_emu && !QX_ok_emu && UTMC_ok_emu && !MUV_ok_emu && !LKr30_ok_emu) {
 		IncrementCounter("L0PNN_ok");
 		/// K3PiSelection
+		///CHANGE THESE
 		NA62Analysis::UserMethods::OutputState state_3pi; // can choose name of variable
-		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
+		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi); 
 		
 		if(K3PiSelected) {
-			IncrementCounter("K3PiSelected");
+			IncrementCounter("K3PiSelected");///changethis
 			}
 	}
 

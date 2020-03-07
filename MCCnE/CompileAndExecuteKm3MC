@@ -1,0 +1,4 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build MCConfig/Km3MCConfig
+./bin-cc7/Km3MC -l MCList/km3.lst -o Km3MC.root

@@ -1,6 +1,6 @@
-analyzers = K3PiMCStudy
-preanalyzers =
-exec = K3PiMC
+analyzers = K2PiMCStudy
+preanalyzers = L0CaloEmulator
+exec = K2PiMC
 
 libs =
 libsdirs =

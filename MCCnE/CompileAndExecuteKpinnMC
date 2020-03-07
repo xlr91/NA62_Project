@@ -1,0 +1,4 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build MCConfig/KpinnMCConfig
+./bin-cc7/KpinnMC -l MCList/kpinn.lst -o Kpinn.root
