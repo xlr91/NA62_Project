@@ -8,6 +8,7 @@
 #include "Event.hh"
 #include "Persistency.hh"
 #include "L0PrimitiveHandler.hh"
+#include "TLine.h"
 using namespace std;
 using namespace NA62Analysis;
 using namespace NA62Constants;
@@ -168,16 +169,16 @@ void TriggerStudy::InitHist(){
 	BookHisto("hPMom", new TH1D("PMomTest", "Momentum_Distro_from_Somewhere", 30, 0, 70000));
 	BookHisto("hEOPCalc", new TH1D("EOPTestCalc", "E/p_thing", 30, 0, 1.5));
 	
-	BookHisto("hLKREoP",new TH1D("LKREOP", "E/p_thing", 30, 0, 1.5));
+	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 100, 0, 1.2));
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
-	BookHisto("hRICHMissingMass", new TH1D("RichMissingMass", "MissingMassReco", 100, -0.02, 0.04));
-	BookHisto("hRICHMissingMass_cuts", new TH1D("RichMissingMass_cuts", "MissingMassReco", 100, -0.02, 0.04));
+	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 300, 0, 0.04));
+	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction_of_Mass_from_RICH_after_selection_cuts", 300, 0, 0.02));
 	
 
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
-	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "E/p_thing", 30, 0, 1.5));
-	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 30, 0, 70000, 30, 0, 240));
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
+	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "Histogram_of_LKrEnergy_over_SpectrometerMomentum_after_cuts", 300, 0, 1));
+	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
 
 
 	///Comments
@@ -571,80 +572,80 @@ void TriggerStudy::Process(int iEvent){
 	
 	///L0TriggerOnPNN = true;
 
+	///Particle Selections 
+	///Kmu2Selection
+	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
+	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
+	if(Kmu2Selected) {
+		IncrementCounter("Kmu2Selection");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 2);
+		FillHisto("hFullTrigStudy", 3); ///K3PiCounter
+	}
+
+	///K2pi Selection
+	NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
+	Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
+	if(K2PiSelected) {
+		IncrementCounter("K2piCounter");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 3);
+		FillHisto("hFullTrigStudy", 4); ///K3PiCounter
+	}
+
+	/// K3PiSelectoin
+	NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
+	Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
+	
+	if(K3PiSelected) {
+		IncrementCounter("K3piCounter");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 4);
+		FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+		}
+
+	///Ke3Selection
+	NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
+	Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
+	if(Ke3Selected) {
+		IncrementCounter("Ke3Selection");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 5);
+		FillHisto("hFullTrigStudy", 6); ///K3PiCounter
+	}
+	
+	///Kmu3SelectionNoSpectrometer
+	NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
+	Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
+	if(Kmu3Selected) {
+		IncrementCounter("Kmu3SelectionNoSpectrometer");
+		IncrementCounter("Main5");
+		FillHisto("hL0PNNChar", 1);
+		FillHisto("hL0PNNChar", 6);
+		FillHisto("hFullTrigStudy", 7); ///K3PiCounter
+	}
+
+	///Pi0Selection
+	NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
+	Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
+	if(K0PiSelected) {
+		IncrementCounter("Pi0Selection");
+		FillHisto("hFullTrigStudy", 8); ///K3PiCounter
+	}
+	
+
+
+
     if(L0TriggerOnPNN) {
 
 
 		IncrementCounter("L0PNN"); 
 		FillHisto("hFullTrigStudy", 2); ///L0PNN
 		FillHisto("hL0PNNChar", 0);
-
-	
-
-		///Particle Selections 
-		///Kmu2Selection
-		NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
-		Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
-		if(Kmu2Selected) {
-			IncrementCounter("Kmu2Selection");
-			IncrementCounter("Main5");
-			FillHisto("hL0PNNChar", 1);
-			FillHisto("hL0PNNChar", 2);
-			FillHisto("hFullTrigStudy", 3); ///K3PiCounter
-		}
-
-		///K2pi Selection
-		NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
-		Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
-		if(K2PiSelected) {
-			IncrementCounter("K2piCounter");
-			IncrementCounter("Main5");
-			FillHisto("hL0PNNChar", 1);
-			FillHisto("hL0PNNChar", 3);
-			FillHisto("hFullTrigStudy", 4); ///K3PiCounter
-		}
-
-		/// K3PiSelectoin
-		NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
-		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
-		
-		if(K3PiSelected) {
-			IncrementCounter("K3piCounter");
-			IncrementCounter("Main5");
-			FillHisto("hL0PNNChar", 1);
-			FillHisto("hL0PNNChar", 4);
-			FillHisto("hFullTrigStudy", 5); ///K3PiCounter
-			}
-
-		///Ke3Selection
-		NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
-		Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
-		if(Ke3Selected) {
-			IncrementCounter("Ke3Selection");
-			IncrementCounter("Main5");
-			FillHisto("hL0PNNChar", 1);
-			FillHisto("hL0PNNChar", 5);
-			FillHisto("hFullTrigStudy", 6); ///K3PiCounter
-		}
-		
-		///Kmu3SelectionNoSpectrometer
-		NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
-		Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
-		if(Kmu3Selected) {
-			IncrementCounter("Kmu3SelectionNoSpectrometer");
-			IncrementCounter("Main5");
-			FillHisto("hL0PNNChar", 1);
-			FillHisto("hL0PNNChar", 6);
-			FillHisto("hFullTrigStudy", 7); ///K3PiCounter
-		}
-
-		///Pi0Selection
-		NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
-		Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
-		if(K0PiSelected) {
-			IncrementCounter("Pi0Selection");
-			FillHisto("hFullTrigStudy", 8); ///K3PiCounter
-		}
-		
 
 		if (Tracks.size() != 1) {return;}
 		///next up: try to loop over the vectors
@@ -713,9 +714,9 @@ void TriggerStudy::Process(int iEvent){
 	const Int_t nx1 = 9;
 	const Int_t nx2 = 7;
 	const char *labels1[nx1] = {"TotalEvent","PhysicsEvent", "L0PNN", "Kmu2Selection","K2piCounter",
-      "K3piCounter","Ke3Selection","Kmu3SelectionNoSpectrometer","Pi0Selection"};
+      "K3piCounter","Ke3Selection","Kmu3Selection","Pi0Selection"};
 	const char *labels2[nx2] = {"L0PNN", "Main5", "Kmu2Selection","K2piCounter",
-      "K3piCounter","Ke3Selection","Kmu3SelectionNoSpectrometer"};
+      "K3piCounter","Ke3Selection","Kmu3Selection"};
 
 	TH1 *MyHisto1 = fHisto.GetHisto("hFullTrigStudy");
 	TH1 *MyHisto2 = fHisto.GetHisto("hL0PNNChar"); 
@@ -757,55 +758,73 @@ void TriggerStudy::EndOfJobUser(){
 	/// If you want to save all plots, just call\n
 	/// \code
 	/// 	SaveAllPlots();
-	SaveAllPlots();
-
+	
 	///PDF_Files/TriggerStudy
 	///Could have used iterator but just need this to work
 
 	TCanvas *c = new TCanvas;
 	
 	fHisto.GetTH1("hFullTrigStudy")->Draw();
+	///fHisto.GetTH1("hFullTrigStudy")->SetXTitle("Characteristics");
+	fHisto.GetTH1("hFullTrigStudy")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hFullTrigStudy")->SetStats(false);
 	c->SaveAs("PDF_Files/TriggerStudy/hFullTrigStudy.pdf");
 
 	fHisto.GetTH1("hL0PNNChar")->Draw();
+	///fHisto.GetTH1("hL0PNNChar")->SetXTitle("Characteristics");
+	fHisto.GetTH1("hL0PNNChar")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hL0PNNChar")->SetStats(false);
 	c->SaveAs("PDF_Files/TriggerStudy/hL0PNNChar.pdf");
 	
-	fHisto.GetTH1("hLKREnergy")->Draw();
+	///fHisto.GetTH1("hLKREnergy")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hLKREnergy.pdf");
 
-	fHisto.GetTH1("hPMom")->Draw();
+	///fHisto.GetTH1("hPMom")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hPMom.pdf");
 
-	fHisto.GetTH1("hEOPCalc")->Draw();
+	///fHisto.GetTH1("hEOPCalc")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hEOPCalc.pdf");
 
 
 	fHisto.GetTH1("hLKREoP")->Draw();
+	fHisto.GetTH1("hLKREoP")->SetXTitle("E(LKr)/p(Spectrometer)");
+	fHisto.GetTH1("hLKREoP")->SetYTitle("Number of Hits");
 	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP.pdf");
 
-	fHisto.GetTH1("hTotE")->Draw();
+	fHisto.GetTH1("hLKREoP_cuts")->Draw();
+	fHisto.GetTH1("hLKREoP_cuts")->SetXTitle("E(LKr)/p(Spectrometer)");
+	fHisto.GetTH1("hLKREoP_cuts")->SetYTitle("Number of Hits");
+	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP_cuts.pdf");
+
+	///fHisto.GetTH1("hTotE")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hTotE.pdf");
 
-	fHisto.GetTH1("hTotEoP")->Draw();
+	///fHisto.GetTH1("hTotEoP")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hTotEoP.pdf");
 
-	fHisto.GetTH1("hRICHMissingMass_cuts")->Draw();
-	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass_cuts.pdf");
-	
 	fHisto.GetTH1("hRICHMissingMass")->Draw();
+	fHisto.GetTH1("hRICHMissingMass")->SetXTitle("Mass^2 (GeV^2)");
+	fHisto.GetTH1("hRICHMissingMass")->SetYTitle("Number of Hits");
 	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass.pdf");
 
+	fHisto.GetTH1("hRICHMissingMass_cuts")->Draw();
+	fHisto.GetTH1("hRICHMissingMass_cuts")->SetXTitle("Mass^2 (GeV^2)");
+	fHisto.GetTH1("hRICHMissingMass_cuts")->SetYTitle("Number of Hits");
+	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass_cuts.pdf");
+	
 
 	fHisto.GetTH2("hRICHring")->Draw();
+	fHisto.GetTH1("hRICHring")->SetXTitle("Momentum (MeV)");
+	fHisto.GetTH1("hRICHring")->SetYTitle("Radius (mm)");
 	c->SaveAs("PDF_Files/TriggerStudy/hRICHring.pdf");
-
-	fHisto.GetTH1("hLKREoP_cuts")->Draw();
-	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP_cuts.pdf");
 	
 	fHisto.GetTH2("hRICHring_cuts")->Draw();
+	fHisto.GetTH1("hRICHring_cuts")->SetXTitle("Momentum (MeV)");
+	fHisto.GetTH1("hRICHring_cuts")->SetYTitle("Radius (mm)");
 	c->SaveAs("PDF_Files/TriggerStudy/hRICHring_cuts.pdf");
+
 	delete c;
-   
+	SaveAllPlots();
 
 	/// \endcode
 	/// Or you can just save the ones you want with\n
