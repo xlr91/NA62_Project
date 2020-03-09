@@ -650,17 +650,17 @@ void TriggerStudy::Process(int iEvent){
 		if (Tracks.size() != 1) {return;}
 		///next up: try to loop over the vectors
 
-		Double_t Ptrack = Tracks[0].GetMomentum(); ///good sht
-		Double_t LKREnergy = Tracks[0].GetLKrEnergy(); ///good sht
-		Double_t LKREoP = Tracks[0].GetLKrEoP(); ///good sht
+		Double_t Ptrack = Tracks[0].GetMomentum();
+		Double_t LKREnergy = Tracks[0].GetLKrEnergy(); 
+		Double_t LKREoP = Tracks[0].GetLKrEoP(); ///useful
 		Double_t TotEnergy = Tracks[0].GetLKrTotalEnergy();
 		Double_t TotEoP = Tracks[0].GetLKrTotalEoP();
 
 		Double_t RichRing = Tracks[0].GetRICHRingRadius();
 		Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
 		Double_t RichMass2 = RichMass*RichMass/1000000;
-		Double_t LowMassLim = 0.005;
-		Double_t HighMassLim = 0.015;
+		Double_t LowMassLim = 0.0125;
+		Double_t HighMassLim = 0.0275;
 
 		FillHisto("hLKREnergy", LKREnergy);
 		FillHisto("hPMom", Ptrack);

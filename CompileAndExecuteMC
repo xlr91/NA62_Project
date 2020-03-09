@@ -1,0 +1,6 @@
+#!/bin/bash
+source scripts/env.sh 
+NA62AnalysisBuilder.py build Mconfig
+./bin-cc7/MCAnalyze -l MCList/km2.lst -o MCkm2.root 
+./bin-cc7/MCAnalyze -l MCList/kpinn.lst -o MCpinn.root 
+
