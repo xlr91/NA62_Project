@@ -7,6 +7,9 @@
 #include "MCSimple.hh"
 #include <TCanvas.h>
 #include "TriggerConditions.hh"
+#include "TFile.h"
+#include "TTree.h"
+#include <fstream>
 
 #include "L0PrimitiveHandler.hh"
 ///#include "K3piSelection.hh" ///change this 
@@ -48,6 +51,8 @@ class MCAnalyzer : public NA62Analysis::Analyzer
 	
 	Int_t fTriggerMaskPNN;
 	L0PrimitiveHandler* fPrimitiveHandler;
+	ofstream myfilep;
+  	ofstream myfiler;
 
 };
 #endif

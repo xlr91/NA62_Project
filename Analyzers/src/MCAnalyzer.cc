@@ -235,9 +235,9 @@ void MCAnalyzer::InitHist(){
 	/// \EndMemberDescr
 
 
-	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 30, 0, 1.2));
+	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 500, 0, 1.2));
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
-	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 100, 0, 0.04));
+	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 500, 0, 0.04));
 
 
 
@@ -262,6 +262,7 @@ void MCAnalyzer::InitHist(){
 
 
 	BookCounter("TotalEoP_counts");
+	BookCounter("OCounter");
 	BookCounter("MuonExcluded");
 	BookCounter("ElectronExcluded");
 	BookCounter("Remains");
@@ -303,6 +304,7 @@ void MCAnalyzer::InitHist(){
 	NewEventFraction("RichCuts");
 	NewEventFraction("RecoMassCuts");
 	AddCounterToEventFraction("EoPCuts", "TotalEoP_counts");
+	AddCounterToEventFraction("EoPCuts", "OCounter");
 	AddCounterToEventFraction("EoPCuts", "MuonExcluded");
 	AddCounterToEventFraction("EoPCuts", "ElectronExcluded");
 	AddCounterToEventFraction("EoPCuts", "Remains");
@@ -347,6 +349,11 @@ void MCAnalyzer::StartOfRunUser(){
 		/// This method is called at the beginning of the processing (corresponding to a start of run in the normal NA62 data taking)\n
 		/// Do here your start of run processing if any
 	/// \EndMemberDescr
+
+  myfilep.open ("MCARingp.txt");
+  myfiler.open ("MCARingr.txt");
+
+
 }
 
 void MCAnalyzer::StartOfBurstUser(){
@@ -516,7 +523,9 @@ void MCAnalyzer::Process(int iEvent){
 
 	Bool_t UTMC_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("UTMC", RichTime);
 	Bool_t RICH_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("RICH", RichTime);
+	///Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("E30", RichTime);
 	Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("E20", RichTime);
+	Bool_t PNN_ok_emu = RICH_ok_emu && !QX_ok_emu && UTMC_ok_emu && !MUV_ok_emu && !LKr30_ok_emu;
 
 	if(!QX_ok_emu) IncrementCounter("QX_ok");
 	if(!MUV_ok_emu) IncrementCounter("MUV_ok");
@@ -528,7 +537,10 @@ void MCAnalyzer::Process(int iEvent){
 
 	if(L0TriggerOnPNN) IncrementCounter("PassedL0Trigger");
 
-	if(RICH_ok_emu && !QX_ok_emu && UTMC_ok_emu && !MUV_ok_emu && !LKr30_ok_emu) {
+	///for testing purposes
+	///PNN_ok_emu = true;
+
+	if(PNN_ok_emu) {
 		IncrementCounter("L0PNN_ok");
 		///Particle Selections 
 		///Kmu2Selection
@@ -589,28 +601,47 @@ void MCAnalyzer::Process(int iEvent){
 
 		std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
 		if (Tracks.size() != 1) return;
+		
 
 		Double_t Ptrack = Tracks[0].GetMomentum();
 		Double_t LKREoP = Tracks[0].GetLKrEoP(); 
 		Double_t RichRing = Tracks[0].GetRICHRingRadius();
 		Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
 		Double_t RichMass2 = RichMass*RichMass/1000000;
+
+		Double_t LowEoPLim = 0.05;
+		Double_t HighEoPLim = 0.9;
 		Double_t LowMassLim = 0.0125;
 		Double_t HighMassLim = 0.0275;
 
-		FillHisto("hLKREoP", LKREoP);
+		if (Ptrack > 35000 || Ptrack < 15000) return;
+		///if (LKREoP > 0.1) return;
+		///if(LKREoP == 0.0) return;
+
+		
+		
 		FillHisto("hRICHring", Ptrack, RichRing);
 		FillHisto("hRICHMissingMass", RichMass2);
+		
+		myfilep << Ptrack << endl;
+		myfiler << RichRing << endl;
 
+		
+		
 		///EoP Cuts
 		IncrementCounter("TotalEoP_counts");
-		if (LKREoP < 0.2) IncrementCounter("MuonExcluded");
-		else if (LKREoP >0.9) IncrementCounter("ElectronExcluded");
-		else
-		{
-			IncrementCounter("Remains");
-			///FillHisto("hLKREoP_cuts", LKREoP);
+		if(LKREoP == 0.0) IncrementCounter("OCounter");
+		else{
+			FillHisto("hLKREoP", LKREoP);		
+			if (LKREoP < LowEoPLim) IncrementCounter("MuonExcluded");
+			else if (LKREoP > HighEoPLim) IncrementCounter("ElectronExcluded");
+			else
+			{
+				IncrementCounter("Remains");
+				///FillHisto("hLKREoP_cuts", LKREoP);
+			}
 		}
+
 
 		///Rich Cuts
 		IncrementCounter("TotalRich_counts");
@@ -690,6 +721,8 @@ void MCAnalyzer::EndOfJobUser(){
     /// \EndMemberDescr
 
 	SaveAllPlots();
+	myfilep.close();
+	myfiler.close();
 
 }
 

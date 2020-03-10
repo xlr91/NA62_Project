@@ -172,16 +172,16 @@ void TriggerStudy::InitHist(){
 	BookHisto("hPMom", new TH1D("PMomTest", "Momentum_Distro_from_Somewhere", 30, 0, 70000));
 	BookHisto("hEOPCalc", new TH1D("EOPTestCalc", "E/p_thing", 30, 0, 1.5));
 	
-	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 100, 0, 1.2));
+	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 500, 0, 1.2));
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
-	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 300, 0, 0.04));
-	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction_of_Mass_from_RICH_after_selection_cuts", 300, 0.01, 0.03));
+	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction_of_Mass_from_RICH_after_selection_cuts", 500, 0.01, 0.03));
 	
 
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
-	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "Histogram_of_LKrEnergy_over_SpectrometerMomentum_after_cuts", 300, 0, 1));
-	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 500, 0, 70000, 500, 0, 240));
+	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "Histogram_of_LKrEnergy_over_SpectrometerMomentum_after_cuts", 500, 0, 1));
+	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 500, 0, 70000, 500, 0, 240));
 
 
 	///Comments
@@ -664,6 +664,8 @@ void TriggerStudy::Process(int iEvent){
 		Double_t RichMass2 = RichMass*RichMass/1000000;
 		Double_t LowMassLim = 0.0125;
 		Double_t HighMassLim = 0.0275;
+
+		///if (Ptrack > 35000 || Ptrack < 15000) return;
 
 		FillHisto("hLKREnergy", LKREnergy);
 		FillHisto("hPMom", Ptrack);
