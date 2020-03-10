@@ -9,6 +9,9 @@
 #include "Persistency.hh"
 #include "L0PrimitiveHandler.hh"
 #include "TLine.h"
+#include "TFile.h"
+#include "TTree.h"
+#include <fstream>
 using namespace std;
 using namespace NA62Analysis;
 using namespace NA62Constants;
@@ -173,7 +176,7 @@ void TriggerStudy::InitHist(){
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
 	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 300, 0, 0.04));
-	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction_of_Mass_from_RICH_after_selection_cuts", 300, 0, 0.02));
+	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction_of_Mass_from_RICH_after_selection_cuts", 300, 0.01, 0.03));
 	
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
