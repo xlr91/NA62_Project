@@ -635,6 +635,7 @@ void MCAnalyzer::Process(int iEvent){
 		///if (LKREoP > 0.1) return;
 		///if(LKREoP == 0.0) return;
 
+		cout<<RICHlims(Ptrack, highlim) << " " << RichRing << " " << RICHlims(Ptrack, lowlim)<<endl;
 		
 		
 		FillHisto("hRICHring", Ptrack, RichRing);
