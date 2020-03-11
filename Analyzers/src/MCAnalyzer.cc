@@ -52,6 +52,17 @@ using namespace NA62Constants;
 	///
 /// \EndDetailed
 
+
+Double_t MCAnalyzer::RICHlims(Double_t p, Double_t lim){
+	Double_t result = Frichval * sqrt(
+		2 - (2/nrichval) * sqrt(
+			1 + (massofpion2/(p*p))
+		)
+	)
+	+ lim;
+	return result;
+}
+
 MCAnalyzer::MCAnalyzer(Core::BaseAnalysis *ba) : Analyzer(ba, "MCAnalyzer")
 {
 	/// \MemberDescr
@@ -236,7 +247,7 @@ void MCAnalyzer::InitHist(){
 
 
 	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 500, 0, 1.2));
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 100, 0, 70000, 100, 0, 240));
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 300, 0, 70000, 300, 0, 240));
 	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 500, 0, 0.04));
 
 
@@ -251,6 +262,7 @@ void MCAnalyzer::InitHist(){
 	BookCounter("RICH_ok");
 	BookCounter("LKr30_ok");
 	BookCounter("L0PNN_ok");
+	BookCounter("0TrackSize");
 
 
 	BookCounter("Kmu2Selection");
@@ -289,6 +301,7 @@ void MCAnalyzer::InitHist(){
 	AddCounterToEventFraction(name1, "RICH_ok");
 	AddCounterToEventFraction(name1, "LKr30_ok");
 	AddCounterToEventFraction(name1, "L0PNN_ok");
+	AddCounterToEventFraction(name1, "0TrackSize");
 	DefineSampleSizeCounter(name1, "TotalEvents");
 
 	AddCounterToEventFraction(name2, "L0PNN_ok");
@@ -352,6 +365,7 @@ void MCAnalyzer::StartOfRunUser(){
 
   myfilep.open ("MCARingp.txt");
   myfiler.open ("MCARingr.txt");
+  myfilepr.open ("MCARingpr.txt");
 
 
 }
@@ -523,7 +537,7 @@ void MCAnalyzer::Process(int iEvent){
 
 	Bool_t UTMC_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("UTMC", RichTime);
 	Bool_t RICH_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("RICH", RichTime);
-	///Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("E30", RichTime);
+	///Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("LKr", RichTime);
 	Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("E20", RichTime);
 	Bool_t PNN_ok_emu = RICH_ok_emu && !QX_ok_emu && UTMC_ok_emu && !MUV_ok_emu && !LKr30_ok_emu;
 
@@ -538,69 +552,72 @@ void MCAnalyzer::Process(int iEvent){
 	if(L0TriggerOnPNN) IncrementCounter("PassedL0Trigger");
 
 	///for testing purposes
-	///PNN_ok_emu = true;
+	PNN_ok_emu = true;
 
 	if(PNN_ok_emu) {
 		IncrementCounter("L0PNN_ok");
 		///Particle Selections 
-		///Kmu2Selection
-		NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
-		Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
-		if(Kmu2Selected) {
-			IncrementCounter("Kmu2Selection");
-			///IncrementCounter("Main5");
-			///FillHisto("hL0PNNChar", 1);
-			///FillHisto("hL0PNNChar", 2);
-			///FillHisto("hFullTrigStudy", 3); ///K3PiCounter
-		}
-
-		///K2pi Selection
-		NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
-		Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
-		if(K2PiSelected) {
-			IncrementCounter("K2piCounter");
-			///IncrementCounter("Main5");
-			///FillHisto("hL0PNNChar", 1);
-			///FillHisto("hL0PNNChar", 3);
-			///FillHisto("hFullTrigStudy", 4); ///K3PiCounter
-		}
-
-		/// K3PiSelectoin
-		NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
-		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
-		
-		if(K3PiSelected) {
-			IncrementCounter("K3piCounter");
-			///IncrementCounter("Main5");
-			///FillHisto("hL0PNNChar", 1);
-			///FillHisto("hL0PNNChar", 4);
-			///FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+			///Kmu2Selection
+			NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
+			Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
+			if(Kmu2Selected) {
+				IncrementCounter("Kmu2Selection");
+				///IncrementCounter("Main5");
+				///FillHisto("hL0PNNChar", 1);
+				///FillHisto("hL0PNNChar", 2);
+				///FillHisto("hFullTrigStudy", 3); ///K3PiCounter
 			}
 
-		///Ke3Selection
-		NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
-		Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
-		if(Ke3Selected) {
-			IncrementCounter("Ke3Selection");
-			///IncrementCounter("Main5");
-			///FillHisto("hL0PNNChar", 1);
-			///FillHisto("hL0PNNChar", 5);
-			///FillHisto("hFullTrigStudy", 6); ///K3PiCounter
-		}
-		
-		///Kmu3SelectionNoSpectrometer
-		NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
-		Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
-		if(Kmu3Selected) {
-			IncrementCounter("Kmu3SelectionNoSpectrometer");
-			///IncrementCounter("Main5");
-			///FillHisto("hL0PNNChar", 1);
-			///FillHisto("hL0PNNChar", 6);
-			///FillHisto("hFullTrigStudy", 7); ///K3PiCounter
-		}
+			///K2pi Selection
+			NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
+			Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
+			if(K2PiSelected) {
+				IncrementCounter("K2piCounter");
+				///IncrementCounter("Main5");
+				///FillHisto("hL0PNNChar", 1);
+				///FillHisto("hL0PNNChar", 3);
+				///FillHisto("hFullTrigStudy", 4); ///K3PiCounter
+			}
+
+			/// K3PiSelectoin
+			NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
+			Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
+			
+			if(K3PiSelected) {
+				IncrementCounter("K3piCounter");
+				///IncrementCounter("Main5");
+				///FillHisto("hL0PNNChar", 1);
+				///FillHisto("hL0PNNChar", 4);
+				///FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+				}
+
+			///Ke3Selection
+			NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
+			Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
+			if(Ke3Selected) {
+				IncrementCounter("Ke3Selection");
+				///IncrementCounter("Main5");
+				///FillHisto("hL0PNNChar", 1);
+				///FillHisto("hL0PNNChar", 5);
+				///FillHisto("hFullTrigStudy", 6); ///K3PiCounter
+			}
+			
+			///Kmu3SelectionNoSpectrometer
+			NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
+			Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
+			if(Kmu3Selected) {
+				IncrementCounter("Kmu3SelectionNoSpectrometer");
+				///IncrementCounter("Main5");
+				///FillHisto("hL0PNNChar", 1);
+				///FillHisto("hL0PNNChar", 6);
+				///FillHisto("hFullTrigStudy", 7); ///K3PiCounter
+			}
 
 		std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
-		if (Tracks.size() != 1) return;
+		if (Tracks.size() != 1) {
+			return;
+			IncrementCounter("0TrackSize");
+		}
 		
 
 		Double_t Ptrack = Tracks[0].GetMomentum();
@@ -623,8 +640,10 @@ void MCAnalyzer::Process(int iEvent){
 		FillHisto("hRICHring", Ptrack, RichRing);
 		FillHisto("hRICHMissingMass", RichMass2);
 		
+		///cout << Ptrack << RichRing << endl;
 		myfilep << Ptrack << endl;
 		myfiler << RichRing << endl;
+		myfilepr << Ptrack << " " << RichRing << endl;
 
 		
 		

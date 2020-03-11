@@ -23,6 +23,8 @@
 #include "BeamParameters.hh"
 #include "LAVMatching.hh"
 #include "ConfigSettings.hh"
+#include <stdio.h>     
+#include <math.h>  
 
 class TH1I;
 class TH2F;
@@ -47,12 +49,19 @@ class MCAnalyzer : public NA62Analysis::Analyzer
 		void EndOfRunUser();
         void EndOfJobUser();
 		void DrawPlot();
+		Double_t RICHlims(Double_t p, Double_t lim);
 	protected:
 	
 	Int_t fTriggerMaskPNN;
 	L0PrimitiveHandler* fPrimitiveHandler;
 	ofstream myfilep;
   	ofstream myfiler;
+	ofstream myfilepr;
+	Double_t Frichval = 17000;
+	Double_t nrichval = 1.000061;
+	Double_t massofpion2 = 139.570*139.570;
+	Int_t highlim = 8;
+	Int_t lowlim = -2; 
 
 };
 #endif
