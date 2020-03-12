@@ -819,13 +819,13 @@ void TriggerStudy::EndOfJobUser(){
 	
 
 	fHisto.GetTH2("hRICHring")->Draw();
-	fHisto.GetTH1("hRICHring")->SetXTitle("Momentum (MeV)");
-	fHisto.GetTH1("hRICHring")->SetYTitle("Radius (mm)");
+	fHisto.GetTH2("hRICHring")->SetXTitle("Momentum (MeV)");
+	fHisto.GetTH2("hRICHring")->SetYTitle("Radius (mm)");
 	c->SaveAs("PDF_Files/TriggerStudy/hRICHring.pdf");
 	
 	fHisto.GetTH2("hRICHring_cuts")->Draw();
-	fHisto.GetTH1("hRICHring_cuts")->SetXTitle("Momentum (MeV)");
-	fHisto.GetTH1("hRICHring_cuts")->SetYTitle("Radius (mm)");
+	fHisto.GetTH2("hRICHring_cuts")->SetXTitle("Momentum (MeV)");
+	fHisto.GetTH2("hRICHring_cuts")->SetYTitle("Radius (mm)");
 	c->SaveAs("PDF_Files/TriggerStudy/hRICHring_cuts.pdf");
 
 	delete c;

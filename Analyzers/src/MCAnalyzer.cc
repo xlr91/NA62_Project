@@ -1,11 +1,14 @@
 #include <stdlib.h>
 #include <iostream>
 #include <TChain.h>
+#include <TCanvas.h>
 #include "MCAnalyzer.hh"
 #include "MCSimple.hh"
 #include "functions.hh"
 #include "Event.hh"
 #include "Persistency.hh"
+#include "TLegend.h"
+#include "TLatex.h"
 using namespace std;
 using namespace NA62Analysis;
 using namespace NA62Constants;
@@ -246,10 +249,15 @@ void MCAnalyzer::InitHist(){
 	/// \EndMemberDescr
 
 
-	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 500, 0, 1.2));
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 300, 0, 70000, 300, 0, 240));
-	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 500, 0, 0.04));
+	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum", 500, 0, 1.2));
+	BookHisto("hLKREoP_cuts",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum cuts", 500, 0, 1.2));
+	BookHisto("hLKREoP_cuts2",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum cuts", 500, 0, 1.2));
 
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius of ring function of particle momentum", 300, 0, 70000, 300, 0, 240));
+	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum cuts", 300, 0, 70000, 300, 0, 240));
+
+	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction of Mass from RICH after selection cuts", 500, 0, 0.04));
 
 
 	BookCounter("TotalEvents");
@@ -517,10 +525,12 @@ void MCAnalyzer::Process(int iEvent){
 		/// @see ROOT TParticlePDG for the particle properties
 		/// @see ROOT TDatabasePDG for a list of PDG codes and particle naming convention
 	/// \EndMemberDescr
+	
 	if(fMCSimple.fStatus == MCSimple::kMissing){printIncompleteMCWarning(iEvent);return;}
 	if(fMCSimple.fStatus == MCSimple::kEmpty){printNoMCWarning();return;}
 	IncrementCounter("TotalEvents");
 	
+	///Initialize variables
 	L0TPData* L0Packet = GetL0Data();
 	Int_t  L0DataType     = L0Packet->GetDataType();
 	EventHeader* EvtHdr = GetEventHeader();
@@ -528,13 +538,12 @@ void MCAnalyzer::Process(int iEvent){
 	Bool_t PhysicsData = L0DataType & 0x1; 
 	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN); ///doesntwork :()
 
-	///if (GetWithMC()) Event *evt = GetMCEvent();
 
+	///Performs L0 primitive check for MC
 	fPrimitiveHandler -> SetData(GetL0Data(), GetRunID());
 	Int_t RichTime = fPrimitiveHandler->GetTriggerTime(kL0RICH);
 	Bool_t QX_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("QX", RichTime);
 	Bool_t MUV_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("MUV", RichTime);
-
 	Bool_t UTMC_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("UTMC", RichTime);
 	Bool_t RICH_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("RICH", RichTime);
 	///Bool_t LKr30_ok_emu = fPrimitiveHandler -> CheckEmulatedPrimitives("LKr", RichTime);
@@ -546,7 +555,6 @@ void MCAnalyzer::Process(int iEvent){
 	if(UTMC_ok_emu) IncrementCounter("UTMC_ok");
 	if(RICH_ok_emu) IncrementCounter("RICH_ok");
 	if(!LKr30_ok_emu) IncrementCounter("LKr30_ok");
-
 	if(PhysicsData) IncrementCounter("PhysicsEvents");
 
 	if(L0TriggerOnPNN) IncrementCounter("PassedL0Trigger");
@@ -554,6 +562,7 @@ void MCAnalyzer::Process(int iEvent){
 	///for testing purposes
 	PNN_ok_emu = true;
 
+	///Runs
 	if(PNN_ok_emu) {
 		IncrementCounter("L0PNN_ok");
 		///Particle Selections 
@@ -615,8 +624,9 @@ void MCAnalyzer::Process(int iEvent){
 
 		std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
 		if (Tracks.size() != 1) {
-			return;
 			IncrementCounter("0TrackSize");
+			return;
+			
 		}
 		
 
@@ -635,10 +645,10 @@ void MCAnalyzer::Process(int iEvent){
 		///if (LKREoP > 0.1) return;
 		///if(LKREoP == 0.0) return;
 
-		cout<<RICHlims(Ptrack, highlim) << " " << RichRing << " " << RICHlims(Ptrack, lowlim)<<endl;
 		
 		
-		FillHisto("hRICHring", Ptrack, RichRing);
+		
+		
 		FillHisto("hRICHMissingMass", RichMass2);
 		
 		///cout << Ptrack << RichRing << endl;
@@ -653,28 +663,35 @@ void MCAnalyzer::Process(int iEvent){
 		if(LKREoP == 0.0) IncrementCounter("OCounter");
 		else{
 			FillHisto("hLKREoP", LKREoP);		
-			if (LKREoP < LowEoPLim) IncrementCounter("MuonExcluded");
+			if (LKREoP < LowEoPLim){
+				IncrementCounter("MuonExcluded");
+				FillHisto("hLKREoP_cuts2", LKREoP);
+			}
 			else if (LKREoP > HighEoPLim) IncrementCounter("ElectronExcluded");
 			else
 			{
 				IncrementCounter("Remains");
-				///FillHisto("hLKREoP_cuts", LKREoP);
+				FillHisto("hLKREoP_cuts", LKREoP);
 			}
 		}
 
 
 		///Rich Cuts
 		IncrementCounter("TotalRich_counts");
-		if(Ptrack > 15000 && Ptrack < 35000 && RichRing < 180){
+		if(RICHlims(Ptrack, lowlim) < RichRing && RichRing < RICHlims(Ptrack, highlim)){
 			IncrementCounter("Rich_Included");
-			///FillHisto("hRICHring_cuts", Ptrack, RichRing);
+			FillHisto("hRICHring", Ptrack, RichRing);
+			
 		}
-		else IncrementCounter("Rich_Excluded");
+		else {
+			IncrementCounter("Rich_Excluded");
+			FillHisto("hRICHring_cuts", Ptrack, RichRing);
+		}
 	
 		///RecoMass Cuts
 		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
 			IncrementCounter("RecoMass_Included");
-			///FillHisto("hRICHMissingMass_cuts", RichMass2);
+			FillHisto("hRICHMissingMass_cuts", RichMass2);
 		}
 		else IncrementCounter("RecoMass_Excluded");
 
@@ -739,7 +756,52 @@ void MCAnalyzer::EndOfJobUser(){
 		/// Although this is described here, Iterators can be used anywhere after the
 		/// histograms have been booked.
     /// \EndMemberDescr
+	TCanvas *c = new TCanvas;
+	TLegend *legeop = new TLegend(0.15, 0.75, 0.35, 0.85);
+	TLegend *legrich = new TLegend(0.15, 0.75, 0.40, 0.90);
+	TLegend *legmass = new TLegend(0.15, 0.75, 0.35, 0.85);
 
+
+	fHisto.GetTH1("hLKREoP_cuts")->SetLineColor(kBlue);
+	fHisto.GetTH1("hLKREoP_cuts2")->SetLineColor(kRed);
+	fHisto.GetTH1("hLKREoP")->SetLineColor(kGreen);
+	fHisto.GetTH1("hLKREoP")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
+	fHisto.GetTH1("hLKREoP")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hLKREoP")->SetStats(false);
+	fHisto.GetTH1("hLKREoP")->Draw();
+	fHisto.GetTH1("hLKREoP_cuts")->Draw("same");
+	fHisto.GetTH1("hLKREoP_cuts2")->Draw("same");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_cuts2"), "Muon Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP"), "Electron Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_cuts"), "Pion Remains", "l");
+	legeop -> Draw();
+	c->SaveAs("MCAEoP_comb.pdf");
+
+	fHisto.GetTH2("hRICHring_cuts")->SetMarkerColor(kRed);
+	fHisto.GetTH2("hRICHring")->SetMarkerColor(kBlue);
+
+	fHisto.GetTH2("hRICHring")->SetXTitle("Momentum (MeV)");
+	fHisto.GetTH2("hRICHring")->SetYTitle("Radius (mm)");
+	fHisto.GetTH2("hRICHring")->SetStats(false);
+	fHisto.GetTH2("hRICHring")->Draw();
+	fHisto.GetTH2("hRICHring_cuts")->Draw("same");
+	legrich -> AddEntry(fHisto.GetTH2("hRICHring_cuts"), "Excluded Cuts", "p");
+	legrich -> AddEntry(fHisto.GetTH2("hRICHring"), "Included Cuts", "p");
+	legrich -> Draw();
+	c->SaveAs("MCARICH_comb.pdf");
+
+	fHisto.GetTH1("hRICHMissingMass_cuts")->SetLineColor(kBlue);
+	fHisto.GetTH1("hRICHMissingMass")->SetLineColor(kRed);
+	fHisto.GetTH1("hRICHMissingMass")->SetXTitle("Mass^{2} (GeV^{2})");
+	fHisto.GetTH1("hRICHMissingMass")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hRICHMissingMass")->Draw();
+	fHisto.GetTH1("hRICHMissingMass_cuts")->Draw("same");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_cuts"), "Included Cuts", "l");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass"), "Excluded Cuts", "l");
+	legmass -> Draw();
+	c->SaveAs("MCAMass_comb.pdf");
+
+	
 	SaveAllPlots();
 	myfilep.close();
 	myfiler.close();
