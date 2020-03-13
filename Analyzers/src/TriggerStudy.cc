@@ -11,114 +11,125 @@
 #include "TLine.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "TLegend.h"
+#include "TLatex.h"
 #include <fstream>
 using namespace std;
 using namespace NA62Analysis;
 using namespace NA62Constants;
 
 /// \class TriggerStudy
-/// \Brief
-/// Short description of your Analyzer
-/// \EndBrief
-///
-/// \Detailed
-/// Detailed description of your Analyzer\n\n
-/// For examples of working Analyzer you can have a look at the examples in the Examples/ directory:\n
-/// LKrPhotonMC \n
-/// Pi0Reconstruction \n
-/// SkimmingNoStrawMuonsTracks \n
-/// Or the framework analyzers that can be found in the Analyzers/ directories: \n
-/// CedarMCTester \n
-/// VertexCDA \n
-/// \n
-/// All the following classes are available for you to use. Check their documentation for more information:\n
-/// NA62Analysis::manip::TermManip \n
-/// NA62Analysis::Analyzer \n
-/// NA62Analysis::CounterHandler \n
-/// NA62Analysis::EventFraction \n
-/// NA62Analysis::MCSimple \n
-/// NA62Analysis::NeuralNetwork \n
-/// NA62Analysis::ParticleInterface \n
-/// NA62Analysis::ParticleTree \n
-/// NA62Analysis::StringBalancedTable \n
-/// NA62Analysis::StringTable \n
-/// NA62Analysis::UserMethods \n
-/// NA62Analysis::Verbose \n
-///
-/// You might also be interested in checking the documentation for the following classes. However you should not
-/// in general have to create instances of these. If necessary a pointer to the existing instance is usually
-/// available or provided by specific methods.\n
-/// NA62Analysis::Core::IOHisto \n
-/// NA62Analysis::Core::IOTree \n
-/// NA62Analysis::Core::IOHandler \n
-/// NA62Analysis::Core::HistoHandler \n
-/// NA62Analysis::Core::HistoHandler::Iterator \n
-/// NA62Analysis::Core::PrimitiveReader \n
-///
+	/// \Brief
+	/// Short description of your Analyzer
+	/// \EndBrief
+	///
+	/// \Detailed
+	/// Detailed description of your Analyzer\n\n
+	/// For examples of working Analyzer you can have a look at the examples in the Examples/ directory:\n
+	/// LKrPhotonMC \n
+	/// Pi0Reconstruction \n
+	/// SkimmingNoStrawMuonsTracks \n
+	/// Or the framework analyzers that can be found in the Analyzers/ directories: \n
+	/// CedarMCTester \n
+	/// VertexCDA \n
+	/// \n
+	/// All the following classes are available for you to use. Check their documentation for more information:\n
+	/// NA62Analysis::manip::TermManip \n
+	/// NA62Analysis::Analyzer \n
+	/// NA62Analysis::CounterHandler \n
+	/// NA62Analysis::EventFraction \n
+	/// NA62Analysis::MCSimple \n
+	/// NA62Analysis::NeuralNetwork \n
+	/// NA62Analysis::ParticleInterface \n
+	/// NA62Analysis::ParticleTree \n
+	/// NA62Analysis::StringBalancedTable \n
+	/// NA62Analysis::StringTable \n
+	/// NA62Analysis::UserMethods \n
+	/// NA62Analysis::Verbose \n
+	///
+	/// You might also be interested in checking the documentation for the following classes. However you should not
+	/// in general have to create instances of these. If necessary a pointer to the existing instance is usually
+	/// available or provided by specific methods.\n
+	/// NA62Analysis::Core::IOHisto \n
+	/// NA62Analysis::Core::IOTree \n
+	/// NA62Analysis::Core::IOHandler \n
+	/// NA62Analysis::Core::HistoHandler \n
+	/// NA62Analysis::Core::HistoHandler::Iterator \n
+	/// NA62Analysis::Core::PrimitiveReader \n
+	///
 /// \EndDetailed
 
-TriggerStudy::TriggerStudy(Core::BaseAnalysis *ba) : Analyzer(ba, "TriggerStudy")
-{
+Double_t TriggerStudy::RICHlims(Double_t p, Double_t lim){
+	Double_t result = Frichval * sqrt(
+		2 - (2/nrichval) * sqrt(
+			1 + (massofpion2/(p*p))
+		)
+	)
+	+ lim;
+	return result;
+}
 
-RequestL0Data();
-RequestL1Data();
-fTriggerMaskPNN  = TriggerConditions::GetInstance()->GetL0TriggerID("RICH-nQX-UTMC-nMUV-nLKr30");
-	/// \MemberDescr
-	/// \param ba : parent BaseAnalysis
-	///
-	/// Specify the trees you want to use and the event class corresponding\n
-	/// Don't try to load MCTruth tree (RUN_0 or Event). Use the MCTruthEvent in Process function instead. Problems when opening twice the same tree.\n
-	/// Example with RecoEvent\n
-	///	\code
-	/// 	RequestTree(new TRecoGigaTrackerEvent);
-	///		RequestTree("GigaTracker", new TRecoGigaTrackerEvent);
-	///		RequestTree("GigaTracker", new TRecoGigaTrackerEvent, "Reco");
-	///		RequestTree("GigaTracker", new TRecoGigaTrackerEvent, "Digis");
-	/// \endcode
-	/// The first form can be used if the detector name is present in the class
-	/// name.\n
-	/// Example with MC Event\n
-	///	\code
-	/// 	RequestTree(new TGigaTrackerEvent);
-	///		RequestTree("GigaTracker", new TGigaTrackerEvent);
-	/// \endcode
-	/// Example with generic tree\n
-	///	\code
-	///		RequestTree<MyClass>("MyTree", "BranchName", "MyClass", new MyClass);
-	///		RequestTree("MyTree", "BranchName", "MyClass", new MyClass);
-	/// 	RequestTree("MyTree", "BranchName", "int", new int);
-	/// \endcode
-	/// Requesting Trigger data\n
-	///	\code
-	///		RequestL0Data();
-	///		RequestL1Data();
-	///		RequestL2Data();
-	/// \endcode
-	/// \n
-	/// Call one of: \n
-	///	\code
-	/// 	AddParam("paramName", &variableName, defaultValue);
-	/// \endcode
-	/// for each parameter of the analyzer. These parameters can be set when starting the FW from the command line with the -p option.\n
-	/// paramName is the name of the parameter in the command line\n
-	/// variableName is the name of the variable that should be declared in the definition of the class\n
-	/// defaultValue is the default value if not specified in the command line\n
-	/// The allowed types for parameters are the following: bool, int, long, float, double, char, string, TString\n
-	/// \n
-	/// A primitive file can be read in parallel to the event file. You can request to read primitives for a sub-detector
-	/// with\n
-	/// \code
-	/// AddPrimitiveReader("detName", true/false);
-	/// \endcode
-	/// The boolean flag indicates if the primitives should be time sorted or kept in the original order they arrived from
-	/// the detector.\n
-	/// You can set the L0 matching window with \n
-	/// \code
-	/// SetL0MatchingWindowWidth("detName", val);
-	/// SetL0MatchingWindowWidth("detName", timestamp, finetime);
-	/// \endcode
-	/// where val is a value in nanoseconds.
-	/// \EndMemberDescr
+TriggerStudy::TriggerStudy(Core::BaseAnalysis *ba) : Analyzer(ba, "TriggerStudy"){
+
+	RequestL0Data();
+	RequestL1Data();
+	fTriggerMaskPNN  = TriggerConditions::GetInstance()->GetL0TriggerID("RICH-nQX-UTMC-nMUV-nLKr30");
+		/// \MemberDescr
+			/// \param ba : parent BaseAnalysis
+			///
+			/// Specify the trees you want to use and the event class corresponding\n
+			/// Don't try to load MCTruth tree (RUN_0 or Event). Use the MCTruthEvent in Process function instead. Problems when opening twice the same tree.\n
+			/// Example with RecoEvent\n
+			///	\code
+			/// 	RequestTree(new TRecoGigaTrackerEvent);
+			///		RequestTree("GigaTracker", new TRecoGigaTrackerEvent);
+			///		RequestTree("GigaTracker", new TRecoGigaTrackerEvent, "Reco");
+			///		RequestTree("GigaTracker", new TRecoGigaTrackerEvent, "Digis");
+			/// \endcode
+			/// The first form can be used if the detector name is present in the class
+			/// name.\n
+			/// Example with MC Event\n
+			///	\code
+			/// 	RequestTree(new TGigaTrackerEvent);
+			///		RequestTree("GigaTracker", new TGigaTrackerEvent);
+			/// \endcode
+			/// Example with generic tree\n
+			///	\code
+			///		RequestTree<MyClass>("MyTree", "BranchName", "MyClass", new MyClass);
+			///		RequestTree("MyTree", "BranchName", "MyClass", new MyClass);
+			/// 	RequestTree("MyTree", "BranchName", "int", new int);
+			/// \endcode
+			/// Requesting Trigger data\n
+			///	\code
+			///		RequestL0Data();
+			///		RequestL1Data();
+			///		RequestL2Data();
+			/// \endcode
+			/// \n
+			/// Call one of: \n
+			///	\code
+			/// 	AddParam("paramName", &variableName, defaultValue);
+			/// \endcode
+			/// for each parameter of the analyzer. These parameters can be set when starting the FW from the command line with the -p option.\n
+			/// paramName is the name of the parameter in the command line\n
+			/// variableName is the name of the variable that should be declared in the definition of the class\n
+			/// defaultValue is the default value if not specified in the command line\n
+			/// The allowed types for parameters are the following: bool, int, long, float, double, char, string, TString\n
+			/// \n
+			/// A primitive file can be read in parallel to the event file. You can request to read primitives for a sub-detector
+			/// with\n
+			/// \code
+			/// AddPrimitiveReader("detName", true/false);
+			/// \endcode
+			/// The boolean flag indicates if the primitives should be time sorted or kept in the original order they arrived from
+			/// the detector.\n
+			/// You can set the L0 matching window with \n
+			/// \code
+			/// SetL0MatchingWindowWidth("detName", val);
+			/// SetL0MatchingWindowWidth("detName", timestamp, finetime);
+			/// \endcode
+			/// where val is a value in nanoseconds.
+		/// \EndMemberDescr
 
 
 
@@ -172,16 +183,22 @@ void TriggerStudy::InitHist(){
 	BookHisto("hPMom", new TH1D("PMomTest", "Momentum_Distro_from_Somewhere", 30, 0, 70000));
 	BookHisto("hEOPCalc", new TH1D("EOPTestCalc", "E/p_thing", 30, 0, 1.5));
 	
-	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram_of_LKrEnergy_over_SpectrometerMomentum", 500, 0, 1.2));
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
-	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction_of_Mass_from_RICH", 500, 0, 0.04));
-	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction_of_Mass_from_RICH_after_selection_cuts", 500, 0.01, 0.03));
-	
 
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius_of_ring_function_of_particle_momentum", 500, 0, 70000, 500, 0, 240));
-	BookHisto("hLKREoP_cuts", new TH1D("EOP_cuts", "Histogram_of_LKrEnergy_over_SpectrometerMomentum_after_cuts", 500, 0, 1));
-	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius_of_ring_function_of_particle_momentum", 500, 0, 70000, 500, 0, 240));
+	BookHisto("hLKREoP_base",new TH1D("LKrEoP_cuts", "Histogram of LKr Energy over Spectrometer Momentum", 500, 0, 1.2));
+	BookHisto("hLKREoP_pion",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
+	BookHisto("hLKREoP_electron",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
+	BookHisto("hLKREoP_muon",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
+
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum", 500, 14000, 36000, 500, 0, 240));
+	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 500, 14000, 36000, 500, 0, 240));
+
+	BookHisto("hRICHMissingMass_base", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_pion", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_electron", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_muon", new TH1D("Mass_RICH_cuts", "Reconstruction of Mass from RICH after selection cuts", 500, 0, 0.04));
+	
 
 
 	///Comments
@@ -273,22 +290,29 @@ void TriggerStudy::InitHist(){
 	BookCounter("Kmu3SelectionNoSpectrometer");
 	BookCounter("Pi0Selection");
 	BookCounter("Main5");
+	BookCounter("0TrackSize");
 	
 	BookCounter("ThreeTrack");
 	BookCounter("TwoTrackwLepton");
 	BookCounter("notAutopass");
 
 	BookCounter("TotalEoP_counts");
+	BookCounter("0Counter");
 	BookCounter("MuonExcluded");
 	BookCounter("ElectronExcluded");
-	BookCounter("Remains");
+	BookCounter("PionsRemaining");
 
 	BookCounter("TotalRich_counts");
 	BookCounter("Rich_Included");
 	BookCounter("Rich_Excluded");
 
-	BookCounter("RecoMass_Included");
-	BookCounter("RecoMass_Excluded");
+	BookCounter("RecoMass_pion");
+	BookCounter("RecoMass_muon");
+	BookCounter("RecoMass_electron");
+
+	
+	
+	
 
 
 
@@ -325,6 +349,7 @@ void TriggerStudy::InitHist(){
 	AddCounterToEventFraction("L0PNNAnalysis", "K3piCounter");
 	AddCounterToEventFraction("L0PNNAnalysis", "Ke3Selection");
 	AddCounterToEventFraction("L0PNNAnalysis", "Kmu3SelectionNoSpectrometer");
+	AddCounterToEventFraction("L0PNNAnalysis", "0TrackSize");
 	DefineSampleSizeCounter("L0PNNAnalysis", "L0PNN");
 
 
@@ -332,9 +357,10 @@ void TriggerStudy::InitHist(){
 	
 
 	AddCounterToEventFraction("EoPCuts", "TotalEoP_counts");
+	AddCounterToEventFraction("EoPCuts", "0Counter");
 	AddCounterToEventFraction("EoPCuts", "MuonExcluded");
 	AddCounterToEventFraction("EoPCuts", "ElectronExcluded");
-	AddCounterToEventFraction("EoPCuts", "Remains");
+	AddCounterToEventFraction("EoPCuts", "PionsRemaining");
 	DefineSampleSizeCounter("EoPCuts", "TotalEoP_counts");
 
 	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
@@ -343,8 +369,9 @@ void TriggerStudy::InitHist(){
 	DefineSampleSizeCounter("RichCuts", "TotalRich_counts");
 	
 	AddCounterToEventFraction("RecoMassCuts", "TotalRich_counts");
-	AddCounterToEventFraction("RecoMassCuts", "RecoMass_Included");
-	AddCounterToEventFraction("RecoMassCuts", "RecoMass_Excluded");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_electron");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_muon");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_pion");
 	DefineSampleSizeCounter("RecoMassCuts", "TotalRich_counts");
 	
 	
@@ -551,7 +578,7 @@ void TriggerStudy::Process(int iEvent){
  	Int_t RunNumber = EvtHdr->GetRunID(); 
  	Bool_t L0TriggerOnPNN    = TriggerConditions::GetInstance()->L0TriggerOn(RunNumber, L0Packet, fTriggerMaskPNN);
 	Bool_t ThreeTrack = *(Bool_t*)GetOutput("FilterThreeTracks.EventSelected");
-	///Bool_t TwoTrack = *(Bool_t*)GetOutput("FilterTwoTrackVertexWithLepton.EventSelected"); ///not good
+	
 
 
 	Bool_t autopass = TriggerConditions::GetInstance()->L1TriggerAutopass(GetEventHeader()); ///L1Trigger autopass
@@ -568,90 +595,88 @@ void TriggerStudy::Process(int iEvent){
 		FillHisto("hFullTrigStudy", 1); ///Physics Events
 	}
 
-	///for the MC study, use the l0trigger emulator hh and cc to find the way to the specific emulator, and then the definition is there
-	/// EOP tests (Help from KMu2Selection.cc)
-	/// do loop over all the vectors if you want
+
 	std::vector<DownstreamTrack> Tracks = *GetOutput<std::vector<DownstreamTrack>>("DownstreamTrackBuilder.Output");
 	
-	///L0TriggerOnPNN = true;
 
 	///Particle Selections 
-	///Kmu2Selection
-	NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
-	Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
-	if(Kmu2Selected) {
-		IncrementCounter("Kmu2Selection");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 2);
-		FillHisto("hFullTrigStudy", 3); ///K3PiCounter
-	}
-
-	///K2pi Selection
-	NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
-	Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
-	if(K2PiSelected) {
-		IncrementCounter("K2piCounter");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 3);
-		FillHisto("hFullTrigStudy", 4); ///K3PiCounter
-	}
-
-	/// K3PiSelectoin
-	NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
-	Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
-	
-	if(K3PiSelected) {
-		IncrementCounter("K3piCounter");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 4);
-		FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+		///Kmu2Selection
+		NA62Analysis::UserMethods::OutputState state_2mu; // can choose name of variable
+		Bool_t Kmu2Selected = *(Bool_t*)GetOutput("Kmu2Selection.EventSelected", state_2mu);
+		if(Kmu2Selected) {
+			IncrementCounter("Kmu2Selection");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 2);
+			FillHisto("hFullTrigStudy", 3); ///K3PiCounter
 		}
 
-	///Ke3Selection
-	NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
-	Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
-	if(Ke3Selected) {
-		IncrementCounter("Ke3Selection");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 5);
-		FillHisto("hFullTrigStudy", 6); ///K3PiCounter
-	}
-	
-	///Kmu3SelectionNoSpectrometer
-	NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
-	Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
-	if(Kmu3Selected) {
-		IncrementCounter("Kmu3SelectionNoSpectrometer");
-		IncrementCounter("Main5");
-		FillHisto("hL0PNNChar", 1);
-		FillHisto("hL0PNNChar", 6);
-		FillHisto("hFullTrigStudy", 7); ///K3PiCounter
-	}
+		///K2pi Selection
+		NA62Analysis::UserMethods::OutputState state_2pi; // can choose name of variable
+		Bool_t K2PiSelected = *(Bool_t*)GetOutput("K2piSelection.EventSelected", state_2pi);
+		if(K2PiSelected) {
+			IncrementCounter("K2piCounter");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 3);
+			FillHisto("hFullTrigStudy", 4); ///K3PiCounter
+		}
 
-	///Pi0Selection
-	NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
-	Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
-	if(K0PiSelected) {
-		IncrementCounter("Pi0Selection");
-		FillHisto("hFullTrigStudy", 8); ///K3PiCounter
-	}
-	
+		/// K3PiSelectoin
+		NA62Analysis::UserMethods::OutputState state_3pi; // cah choose name of variable
+		Bool_t K3PiSelected = *(Bool_t*)GetOutput("K3piSelection.EventSelected", state_3pi);
+		
+		if(K3PiSelected) {
+			IncrementCounter("K3piCounter");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 4);
+			FillHisto("hFullTrigStudy", 5); ///K3PiCounter
+			}
+
+		///Ke3Selection
+		NA62Analysis::UserMethods::OutputState state_3e; // can choose name of variable
+		Bool_t Ke3Selected = *(Bool_t*)GetOutput("Ke3Selection.EventSelected", state_3e);
+		if(Ke3Selected) {
+			IncrementCounter("Ke3Selection");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 5);
+			FillHisto("hFullTrigStudy", 6); ///K3PiCounter
+		}
+		
+		///Kmu3SelectionNoSpectrometer
+		NA62Analysis::UserMethods::OutputState state_3mu; // can choose name of variable
+		Bool_t Kmu3Selected = *(Bool_t*)GetOutput("Kmu3SelectionNoSpectrometer.EventSelected", state_3mu);
+		if(Kmu3Selected) {
+			IncrementCounter("Kmu3SelectionNoSpectrometer");
+			IncrementCounter("Main5");
+			FillHisto("hL0PNNChar", 1);
+			FillHisto("hL0PNNChar", 6);
+			FillHisto("hFullTrigStudy", 7); ///K3PiCounter
+		}
+
+		///Pi0Selection
+		NA62Analysis::UserMethods::OutputState state_0pi; // can choose name of variable
+		Bool_t K0PiSelected = *(Bool_t*)GetOutput("Pi0Selection.EventSelected", state_0pi);
+		if(K0PiSelected) {
+			IncrementCounter("Pi0Selection");
+			FillHisto("hFullTrigStudy", 8); ///K3PiCounter
+		}
+		
 
 
 
     if(L0TriggerOnPNN) {
-
-
 		IncrementCounter("L0PNN"); 
 		FillHisto("hFullTrigStudy", 2); ///L0PNN
 		FillHisto("hL0PNNChar", 0);
 
-		if (Tracks.size() != 1) {return;}
-		///next up: try to loop over the vectors
+		if (Tracks.size() != 1) {
+			IncrementCounter("0TrackSize");
+			return;
+		}
+	
 
 		Double_t Ptrack = Tracks[0].GetMomentum();
 		Double_t LKREnergy = Tracks[0].GetLKrEnergy(); 
@@ -662,54 +687,68 @@ void TriggerStudy::Process(int iEvent){
 		Double_t RichRing = Tracks[0].GetRICHRingRadius();
 		Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
 		Double_t RichMass2 = RichMass*RichMass/1000000;
-		Double_t LowMassLim = 0.0125;
-		Double_t HighMassLim = 0.0275;
 
-		///if (Ptrack > 35000 || Ptrack < 15000) return;
+		Double_t LowEoPLim = 0.05;
+		Double_t HighEoPLim = 0.9;
+		Double_t LowMassLim = 0.005;
+		Double_t HighMassLim = 0.0125;
 
+		if (Ptrack > 35000 || Ptrack < 15000) return;
+
+		///Test Histograms
 		FillHisto("hLKREnergy", LKREnergy);
 		FillHisto("hPMom", Ptrack);
 		FillHisto("hEOPCalc", LKREnergy/Ptrack);
-
-		FillHisto("hLKREoP", LKREoP);
 		FillHisto("hTotE", TotEnergy);
 		FillHisto("hTotEoP",TotEoP);
-		FillHisto("hRICHring", Ptrack, RichRing);
-		FillHisto("hRICHMissingMass", RichMass2);
+
 
 		
 
 		///EoP Cuts
 		IncrementCounter("TotalEoP_counts");
-		if (LKREoP < 0.2) {
-			IncrementCounter("MuonExcluded");
-		}
-		else if (LKREoP >0.9){
-			IncrementCounter("ElectronExcluded");
-		}
-		else
-		{
-			IncrementCounter("Remains");
-			FillHisto("hLKREoP_cuts", LKREoP);
+		if(LKREoP == 0.0) IncrementCounter("0Counter");
+		else{
+			FillHisto("hLKREoP_base", LKREoP);		
+			if (LKREoP < LowEoPLim) {
+				IncrementCounter("MuonExcluded");
+				FillHisto("hLKREoP_muon", LKREoP);
+			}
+			else if (LKREoP > HighEoPLim) {
+				IncrementCounter("ElectronExcluded");
+				FillHisto("hLKREoP_electron", LKREoP);
+			}
+			else{
+				IncrementCounter("PionsRemaining");
+				FillHisto("hLKREoP_pion", LKREoP);
+			}
 		}
 
 		///Rich Cuts
 		IncrementCounter("TotalRich_counts");
-		if(Ptrack > 15000 && Ptrack < 35000 && RichRing < 180){
+		if(RICHlims(Ptrack, lowlim) < RichRing && RichRing < RICHlims(Ptrack, highlim)){
 			IncrementCounter("Rich_Included");
-			FillHisto("hRICHring_cuts", Ptrack, RichRing);
+			FillHisto("hRICHring", Ptrack, RichRing);
 		}
 		else {
 			IncrementCounter("Rich_Excluded");
+			FillHisto("hRICHring_exc", Ptrack, RichRing);
 		}
 	
 		///RecoMass Cuts
-		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
-			IncrementCounter("RecoMass_Included");
-			FillHisto("hRICHMissingMass_cuts", RichMass2);
+		FillHisto("hRICHMissingMass_base", RichMass2);
+		if(RichMass2 <= LowMassLim){
+			IncrementCounter("RecoMass_electron");
+			FillHisto("hRICHMissingMass_electron", RichMass2);
 		}
-		else{
-			IncrementCounter("RecoMass_Excluded");
+		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
+			IncrementCounter("RecoMass_muon");
+			FillHisto("hRICHMissingMass_muon", RichMass2);
+			
+		}
+		else {
+			IncrementCounter("RecoMass_pion");
+			FillHisto("hRICHMissingMass_pion", RichMass2);
 		}
 
 	}
@@ -769,6 +808,10 @@ void TriggerStudy::EndOfJobUser(){
 
 	TCanvas *c = new TCanvas;
 	
+	TLegend *legeop = new TLegend(0.15, 0.75, 0.35, 0.85);
+	TLegend *legrich = new TLegend(0.15, 0.75, 0.40, 0.90);
+	TLegend *legmass = new TLegend(0.15, 0.75, 0.35, 0.85);
+	
 	fHisto.GetTH1("hFullTrigStudy")->Draw();
 	///fHisto.GetTH1("hFullTrigStudy")->SetXTitle("Characteristics");
 	fHisto.GetTH1("hFullTrigStudy")->SetYTitle("Number of Hits");
@@ -790,16 +833,26 @@ void TriggerStudy::EndOfJobUser(){
 	///fHisto.GetTH1("hEOPCalc")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hEOPCalc.pdf");
 
+		///Combining EoP Graph
+	fHisto.GetTH1("hLKREoP_base")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
+	fHisto.GetTH1("hLKREoP_base")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hLKREoP_base")->SetStats(false);
 
-	fHisto.GetTH1("hLKREoP")->Draw();
-	fHisto.GetTH1("hLKREoP")->SetXTitle("E(LKr)/p(Spectrometer)");
-	fHisto.GetTH1("hLKREoP")->SetYTitle("Number of Hits");
-	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP.pdf");
+	fHisto.GetTH1("hLKREoP_muon")->SetLineColor(kRed);
+	fHisto.GetTH1("hLKREoP_pion")->SetLineColor(kBlue);
+	fHisto.GetTH1("hLKREoP_electron")->SetLineColor(kGreen);
 
-	fHisto.GetTH1("hLKREoP_cuts")->Draw();
-	fHisto.GetTH1("hLKREoP_cuts")->SetXTitle("E(LKr)/p(Spectrometer)");
-	fHisto.GetTH1("hLKREoP_cuts")->SetYTitle("Number of Hits");
-	c->SaveAs("PDF_Files/TriggerStudy/hLKREoP_cuts.pdf");
+	fHisto.GetTH1("hLKREoP_base")->Draw();
+	fHisto.GetTH1("hLKREoP_muon")->Draw("same");
+	fHisto.GetTH1("hLKREoP_pion")->Draw("same");
+	fHisto.GetTH1("hLKREoP_electron")->Draw("same");
+	
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_muon"), "Muon Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Electron Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_pion"), "Pion Remains", "l");
+	legeop -> Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/EoP_comb.pdf");
+
 
 	///fHisto.GetTH1("hTotE")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hTotE.pdf");
@@ -807,26 +860,42 @@ void TriggerStudy::EndOfJobUser(){
 	///fHisto.GetTH1("hTotEoP")->Draw();
 	///c->SaveAs("PDF_Files/TriggerStudy/hTotEoP.pdf");
 
-	fHisto.GetTH1("hRICHMissingMass")->Draw();
-	fHisto.GetTH1("hRICHMissingMass")->SetXTitle("Mass^2 (GeV^2)");
-	fHisto.GetTH1("hRICHMissingMass")->SetYTitle("Number of Hits");
-	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass.pdf");
+	///Combining RICH Graph
+	fHisto.GetTH2("hRICHring_exc")->SetMarkerColor(kRed);
+	fHisto.GetTH2("hRICHring")->SetMarkerColor(kBlue);
+	///fHisto.GetTH2("hRICHring_exc")->SetMarkerStyle(6);
+	///fHisto.GetTH2("hRICHring")->SetMarkerStyle(6);
 
-	fHisto.GetTH1("hRICHMissingMass_cuts")->Draw();
-	fHisto.GetTH1("hRICHMissingMass_cuts")->SetXTitle("Mass^2 (GeV^2)");
-	fHisto.GetTH1("hRICHMissingMass_cuts")->SetYTitle("Number of Hits");
-	c->SaveAs("PDF_Files/TriggerStudy/hRICHMissingMass_cuts.pdf");
-	
-
-	fHisto.GetTH2("hRICHring")->Draw();
 	fHisto.GetTH2("hRICHring")->SetXTitle("Momentum (MeV)");
 	fHisto.GetTH2("hRICHring")->SetYTitle("Radius (mm)");
-	c->SaveAs("PDF_Files/TriggerStudy/hRICHring.pdf");
+	fHisto.GetTH2("hRICHring")->SetStats(false);
+	fHisto.GetTH2("hRICHring")->Draw();
+	fHisto.GetTH2("hRICHring_exc")->Draw("same");
+	legrich -> AddEntry(fHisto.GetTH2("hRICHring_exc"), "Excluded Cuts", "p");
+	legrich -> AddEntry(fHisto.GetTH2("hRICHring"), "Included Cuts", "p");
+	legrich -> Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/RICH_comb.pdf");
+
+
+
+	///Combining Mass Graph
+	fHisto.GetTH1("hRICHMissingMass_base")->SetXTitle("Mass^{2} (GeV^{2})");
+	fHisto.GetTH1("hRICHMissingMass_base")->SetYTitle("Number of Hits");
+
+	fHisto.GetTH1("hRICHMissingMass_electron")->SetLineColor(kGreen);
+	fHisto.GetTH1("hRICHMissingMass_muon")->SetLineColor(kRed);
+	fHisto.GetTH1("hRICHMissingMass_pion")->SetLineColor(kBlue);
 	
-	fHisto.GetTH2("hRICHring_cuts")->Draw();
-	fHisto.GetTH2("hRICHring_cuts")->SetXTitle("Momentum (MeV)");
-	fHisto.GetTH2("hRICHring_cuts")->SetYTitle("Radius (mm)");
-	c->SaveAs("PDF_Files/TriggerStudy/hRICHring_cuts.pdf");
+
+	fHisto.GetTH1("hRICHMissingMass_base")->Draw();
+	fHisto.GetTH1("hRICHMissingMass_pion")->Draw("same");
+	fHisto.GetTH1("hRICHMissingMass_muon")->Draw("same");
+	fHisto.GetTH1("hRICHMissingMass_electron")->Draw("same");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_electron"), "Electron Cuts", "l");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_muon"), "Muon Cuts", "l");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_pion"), "Pion Cuts", "l");
+	legmass -> Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/Mass_comb.pdf");
 
 	delete c;
 	SaveAllPlots();

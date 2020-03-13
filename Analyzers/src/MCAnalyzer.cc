@@ -248,13 +248,13 @@ void MCAnalyzer::InitHist(){
 	/// \EndMemberDescr
 
 
-	BookHisto("hLKREoP_base",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
+	BookHisto("hLKREoP_base",new TH1D("LKrEoP", "Histogram of LKr Energy over Spectrometer Momentum", 500, 0, 1.2));
 	BookHisto("hLKREoP_pion",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
-	BookHisto("hLKREoP_electron",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
+	BookHisto("hLKREoP_electron",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hLKREoP_muon",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius of ring function of particle momentum", 300, 0, 70000, 300, 0, 240));
-	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 300, 0, 70000, 300, 0, 240));
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum", 300, 14000, 36000, 300, 0, 240));
+	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 300, 14000, 36000, 300, 0, 240));
 
 	BookHisto("hRICHMissingMass_base", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
 	BookHisto("hRICHMissingMass_pion", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
@@ -796,13 +796,14 @@ void MCAnalyzer::EndOfJobUser(){
 	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Electron Cuts", "l");
 	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_pion"), "Pion Remains", "l");
 	legeop -> Draw();
-	c->SaveAs("MCAEoP_comb.pdf");
+	c->SaveAs("PDF_Files/MC_simulations/MCAEoP_comb.pdf");
 
 
 	///Combining RICH Graph
 	fHisto.GetTH2("hRICHring_exc")->SetMarkerColor(kRed);
 	fHisto.GetTH2("hRICHring")->SetMarkerColor(kBlue);
-
+	///fHisto.GetTH2("hRICHring_exc")->SetMarkerStyle(6);
+	///fHisto.GetTH2("hRICHring")->SetMarkerStyle(6);
 	fHisto.GetTH2("hRICHring")->SetXTitle("Momentum (MeV)");
 	fHisto.GetTH2("hRICHring")->SetYTitle("Radius (mm)");
 	fHisto.GetTH2("hRICHring")->SetStats(false);
@@ -811,7 +812,7 @@ void MCAnalyzer::EndOfJobUser(){
 	legrich -> AddEntry(fHisto.GetTH2("hRICHring_exc"), "Excluded Cuts", "p");
 	legrich -> AddEntry(fHisto.GetTH2("hRICHring"), "Included Cuts", "p");
 	legrich -> Draw();
-	c->SaveAs("MCARICH_comb.pdf");
+	c->SaveAs("PDF_Files/MC_simulations/MCARICH_comb.pdf");
 
 	///Combining Mass Graph
 	fHisto.GetTH1("hRICHMissingMass_base")->SetXTitle("Mass^{2} (GeV^{2})");
@@ -829,13 +830,13 @@ void MCAnalyzer::EndOfJobUser(){
 	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_muon"), "Muon Cuts", "l");
 	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_pion"), "Pion Cuts", "l");
 	legmass -> Draw();
-	c->SaveAs("MCAMass_comb.pdf");
+	c->SaveAs("PDF_Files/MC_simulations/MCAMass_comb.pdf");
 
 	
 	SaveAllPlots();
 	myfilep.close();
 	myfiler.close();
-
+	delete c;
 }
 
 void MCAnalyzer::DrawPlot(){
