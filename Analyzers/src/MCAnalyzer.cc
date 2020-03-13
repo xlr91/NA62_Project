@@ -66,8 +66,7 @@ Double_t MCAnalyzer::RICHlims(Double_t p, Double_t lim){
 	return result;
 }
 
-MCAnalyzer::MCAnalyzer(Core::BaseAnalysis *ba) : Analyzer(ba, "MCAnalyzer")
-{
+MCAnalyzer::MCAnalyzer(Core::BaseAnalysis *ba) : Analyzer(ba, "MCAnalyzer"){
 	/// \MemberDescr
 		/// \param ba : parent BaseAnalysis
 		///
@@ -249,15 +248,18 @@ void MCAnalyzer::InitHist(){
 	/// \EndMemberDescr
 
 
-	BookHisto("hLKREoP",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum", 500, 0, 1.2));
-	BookHisto("hLKREoP_cuts",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum cuts", 500, 0, 1.2));
-	BookHisto("hLKREoP_cuts2",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum cuts", 500, 0, 1.2));
+	BookHisto("hLKREoP_base",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
+	BookHisto("hLKREoP_pion",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
+	BookHisto("hLKREoP_electron",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
+	BookHisto("hLKREoP_muon",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius of ring function of particle momentum", 300, 0, 70000, 300, 0, 240));
-	BookHisto("hRICHring_cuts", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum cuts", 300, 0, 70000, 300, 0, 240));
+	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 300, 0, 70000, 300, 0, 240));
 
-	BookHisto("hRICHMissingMass", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
-	BookHisto("hRICHMissingMass_cuts", new TH1D("Mass_RICH_cuts", "Reconstruction of Mass from RICH after selection cuts", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_base", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_pion", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_electron", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_muon", new TH1D("Mass_RICH_cuts", "Reconstruction of Mass from RICH after selection cuts", 500, 0, 0.04));
 
 
 	BookCounter("TotalEvents");
@@ -285,15 +287,15 @@ void MCAnalyzer::InitHist(){
 	BookCounter("OCounter");
 	BookCounter("MuonExcluded");
 	BookCounter("ElectronExcluded");
-	BookCounter("Remains");
+	BookCounter("PionsRemaining");
 
 	BookCounter("TotalRich_counts");
 	BookCounter("Rich_Included");
 	BookCounter("Rich_Excluded");
 
-	BookCounter("RecoMass_Included");
-	BookCounter("RecoMass_Excluded");
-
+	BookCounter("RecoMass_pion");
+	BookCounter("RecoMass_muon");
+	BookCounter("RecoMass_electron");
 
 	TString name1 = "L0_Performance";
 	TString name2 = "Data_Selections";
@@ -328,7 +330,7 @@ void MCAnalyzer::InitHist(){
 	AddCounterToEventFraction("EoPCuts", "OCounter");
 	AddCounterToEventFraction("EoPCuts", "MuonExcluded");
 	AddCounterToEventFraction("EoPCuts", "ElectronExcluded");
-	AddCounterToEventFraction("EoPCuts", "Remains");
+	AddCounterToEventFraction("EoPCuts", "PionsRemaining");
 	DefineSampleSizeCounter("EoPCuts", "TotalEoP_counts");
 
 	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
@@ -337,8 +339,9 @@ void MCAnalyzer::InitHist(){
 	DefineSampleSizeCounter("RichCuts", "TotalRich_counts");
 	
 	AddCounterToEventFraction("RecoMassCuts", "TotalRich_counts");
-	AddCounterToEventFraction("RecoMassCuts", "RecoMass_Included");
-	AddCounterToEventFraction("RecoMassCuts", "RecoMass_Excluded");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_electron");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_muon");
+	AddCounterToEventFraction("RecoMassCuts", "RecoMass_pion");
 	DefineSampleSizeCounter("RecoMassCuts", "TotalRich_counts");
 }
 
@@ -560,7 +563,7 @@ void MCAnalyzer::Process(int iEvent){
 	if(L0TriggerOnPNN) IncrementCounter("PassedL0Trigger");
 
 	///for testing purposes
-	PNN_ok_emu = true;
+	///PNN_ok_emu = true;
 
 	///Runs
 	if(PNN_ok_emu) {
@@ -638,18 +641,21 @@ void MCAnalyzer::Process(int iEvent){
 
 		Double_t LowEoPLim = 0.05;
 		Double_t HighEoPLim = 0.9;
-		Double_t LowMassLim = 0.0125;
-		Double_t HighMassLim = 0.0275;
+
+		///Double_t LowestMassLim = 0.005;
+		Double_t LowMassLim = 0.005;
+		Double_t HighMassLim = 0.0125;
 
 		if (Ptrack > 35000 || Ptrack < 15000) return;
 		///if (LKREoP > 0.1) return;
 		///if(LKREoP == 0.0) return;
-
 		
 		
 		
 		
-		FillHisto("hRICHMissingMass", RichMass2);
+		
+		
+		
 		
 		///cout << Ptrack << RichRing << endl;
 		myfilep << Ptrack << endl;
@@ -662,16 +668,18 @@ void MCAnalyzer::Process(int iEvent){
 		IncrementCounter("TotalEoP_counts");
 		if(LKREoP == 0.0) IncrementCounter("OCounter");
 		else{
-			FillHisto("hLKREoP", LKREoP);		
-			if (LKREoP < LowEoPLim){
+			FillHisto("hLKREoP_base", LKREoP);		
+			if (LKREoP < LowEoPLim) {
 				IncrementCounter("MuonExcluded");
-				FillHisto("hLKREoP_cuts2", LKREoP);
+				FillHisto("hLKREoP_muon", LKREoP);
 			}
-			else if (LKREoP > HighEoPLim) IncrementCounter("ElectronExcluded");
-			else
-			{
-				IncrementCounter("Remains");
-				FillHisto("hLKREoP_cuts", LKREoP);
+			else if (LKREoP > HighEoPLim) {
+				IncrementCounter("ElectronExcluded");
+				FillHisto("hLKREoP_electron", LKREoP);
+			}
+			else{
+				IncrementCounter("PionsRemaining");
+				FillHisto("hLKREoP_pion", LKREoP);
 			}
 		}
 
@@ -681,19 +689,27 @@ void MCAnalyzer::Process(int iEvent){
 		if(RICHlims(Ptrack, lowlim) < RichRing && RichRing < RICHlims(Ptrack, highlim)){
 			IncrementCounter("Rich_Included");
 			FillHisto("hRICHring", Ptrack, RichRing);
-			
 		}
 		else {
 			IncrementCounter("Rich_Excluded");
-			FillHisto("hRICHring_cuts", Ptrack, RichRing);
+			FillHisto("hRICHring_exc", Ptrack, RichRing);
 		}
 	
 		///RecoMass Cuts
-		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
-			IncrementCounter("RecoMass_Included");
-			FillHisto("hRICHMissingMass_cuts", RichMass2);
+		FillHisto("hRICHMissingMass_base", RichMass2);
+		if(RichMass2 <= LowMassLim){
+			IncrementCounter("RecoMass_electron");
+			FillHisto("hRICHMissingMass_electron", RichMass2);
 		}
-		else IncrementCounter("RecoMass_Excluded");
+		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
+			IncrementCounter("RecoMass_muon");
+			FillHisto("hRICHMissingMass_muon", RichMass2);
+			
+		}
+		else {
+			IncrementCounter("RecoMass_pion");
+			FillHisto("hRICHMissingMass_pion", RichMass2);
+		}
 
 		
 	}
@@ -762,42 +778,56 @@ void MCAnalyzer::EndOfJobUser(){
 	TLegend *legmass = new TLegend(0.15, 0.75, 0.35, 0.85);
 
 
-	fHisto.GetTH1("hLKREoP_cuts")->SetLineColor(kBlue);
-	fHisto.GetTH1("hLKREoP_cuts2")->SetLineColor(kRed);
-	fHisto.GetTH1("hLKREoP")->SetLineColor(kGreen);
-	fHisto.GetTH1("hLKREoP")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
-	fHisto.GetTH1("hLKREoP")->SetYTitle("Number of Hits");
-	fHisto.GetTH1("hLKREoP")->SetStats(false);
-	fHisto.GetTH1("hLKREoP")->Draw();
-	fHisto.GetTH1("hLKREoP_cuts")->Draw("same");
-	fHisto.GetTH1("hLKREoP_cuts2")->Draw("same");
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_cuts2"), "Muon Cuts", "l");
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP"), "Electron Cuts", "l");
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_cuts"), "Pion Remains", "l");
+	///Combining EoP Graph
+	fHisto.GetTH1("hLKREoP_base")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
+	fHisto.GetTH1("hLKREoP_base")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hLKREoP_base")->SetStats(false);
+
+	fHisto.GetTH1("hLKREoP_muon")->SetLineColor(kRed);
+	fHisto.GetTH1("hLKREoP_pion")->SetLineColor(kBlue);
+	fHisto.GetTH1("hLKREoP_electron")->SetLineColor(kGreen);
+
+	fHisto.GetTH1("hLKREoP_base")->Draw();
+	fHisto.GetTH1("hLKREoP_muon")->Draw("same");
+	fHisto.GetTH1("hLKREoP_pion")->Draw("same");
+	fHisto.GetTH1("hLKREoP_electron")->Draw("same");
+	
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_muon"), "Muon Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Electron Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_pion"), "Pion Remains", "l");
 	legeop -> Draw();
 	c->SaveAs("MCAEoP_comb.pdf");
 
-	fHisto.GetTH2("hRICHring_cuts")->SetMarkerColor(kRed);
+
+	///Combining RICH Graph
+	fHisto.GetTH2("hRICHring_exc")->SetMarkerColor(kRed);
 	fHisto.GetTH2("hRICHring")->SetMarkerColor(kBlue);
 
 	fHisto.GetTH2("hRICHring")->SetXTitle("Momentum (MeV)");
 	fHisto.GetTH2("hRICHring")->SetYTitle("Radius (mm)");
 	fHisto.GetTH2("hRICHring")->SetStats(false);
 	fHisto.GetTH2("hRICHring")->Draw();
-	fHisto.GetTH2("hRICHring_cuts")->Draw("same");
-	legrich -> AddEntry(fHisto.GetTH2("hRICHring_cuts"), "Excluded Cuts", "p");
+	fHisto.GetTH2("hRICHring_exc")->Draw("same");
+	legrich -> AddEntry(fHisto.GetTH2("hRICHring_exc"), "Excluded Cuts", "p");
 	legrich -> AddEntry(fHisto.GetTH2("hRICHring"), "Included Cuts", "p");
 	legrich -> Draw();
 	c->SaveAs("MCARICH_comb.pdf");
 
-	fHisto.GetTH1("hRICHMissingMass_cuts")->SetLineColor(kBlue);
-	fHisto.GetTH1("hRICHMissingMass")->SetLineColor(kRed);
-	fHisto.GetTH1("hRICHMissingMass")->SetXTitle("Mass^{2} (GeV^{2})");
-	fHisto.GetTH1("hRICHMissingMass")->SetYTitle("Number of Hits");
-	fHisto.GetTH1("hRICHMissingMass")->Draw();
-	fHisto.GetTH1("hRICHMissingMass_cuts")->Draw("same");
-	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_cuts"), "Included Cuts", "l");
-	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass"), "Excluded Cuts", "l");
+	///Combining Mass Graph
+	fHisto.GetTH1("hRICHMissingMass_base")->SetXTitle("Mass^{2} (GeV^{2})");
+	fHisto.GetTH1("hRICHMissingMass_base")->SetYTitle("Number of Hits");
+
+	fHisto.GetTH1("hRICHMissingMass_electron")->SetLineColor(kGreen);
+	fHisto.GetTH1("hRICHMissingMass_muon")->SetLineColor(kRed);
+	fHisto.GetTH1("hRICHMissingMass_pion")->SetLineColor(kBlue);
+
+	fHisto.GetTH1("hRICHMissingMass_base")->Draw();
+	fHisto.GetTH1("hRICHMissingMass_pion")->Draw("same");
+	fHisto.GetTH1("hRICHMissingMass_muon")->Draw("same");
+	fHisto.GetTH1("hRICHMissingMass_electron")->Draw("same");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_electron"), "Electron Cuts", "l");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_muon"), "Muon Cuts", "l");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_pion"), "Pion Cuts", "l");
 	legmass -> Draw();
 	c->SaveAs("MCAMass_comb.pdf");
 
