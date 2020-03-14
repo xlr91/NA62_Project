@@ -186,15 +186,15 @@ void TriggerStudy::InitHist(){
 	BookHisto("hTotE", new TH1D("LKREnergyTot", "Energy_Distro_of_LKR", 30, 0, 70000));
 	BookHisto("hTotEoP", new TH1D("LKRTotEoP", "E/p_thing", 30, 0, 1.5));
 
-	BookHisto("hLKREoP_base",new TH1D("LKrEoP_cuts", "Histogram of LKr Energy over Spectrometer Momentum", 500, 0, 1.2));
+	BookHisto("hLKREoP_base",new TH1D("LKrEoP_cuts", "Histogram of LKr Energy over Spectrometer Momentum (Data)", 500, 0, 1.2));
 	BookHisto("hLKREoP_pion",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
 	BookHisto("hLKREoP_electron",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hLKREoP_muon",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
-	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum", 500, 14000, 36000, 500, 0, 240));
+	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum (Data)", 500, 14000, 36000, 500, 0, 240));
 	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 500, 14000, 36000, 500, 0, 240));
 
-	BookHisto("hRICHMissingMass_base", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
+	BookHisto("hRICHMissingMass_base", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH (Data)", 500, 0, 0.04));
 	BookHisto("hRICHMissingMass_pion", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
 	BookHisto("hRICHMissingMass_electron", new TH1D("Mass_RICH", "Reconstruction of Mass from RICH", 500, 0, 0.04));
 	BookHisto("hRICHMissingMass_muon", new TH1D("Mass_RICH_cuts", "Reconstruction of Mass from RICH after selection cuts", 500, 0, 0.04));
