@@ -701,7 +701,7 @@ void MCAnalyzer::Process(int iEvent){
 			IncrementCounter("RecoMass_electron");
 			FillHisto("hRICHMissingMass_electron", RichMass2);
 		}
-		if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
+		else if(LowMassLim < RichMass2 && RichMass2 < HighMassLim ){
 			IncrementCounter("RecoMass_muon");
 			FillHisto("hRICHMissingMass_muon", RichMass2);
 			
@@ -793,7 +793,7 @@ void MCAnalyzer::EndOfJobUser(){
 	fHisto.GetTH1("hLKREoP_electron")->Draw("same");
 	
 	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_muon"), "Muon Cuts", "l");
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Electron Cuts", "l");
+	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Positron Cuts", "l");
 	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_pion"), "Pion Remains", "l");
 	legeop -> Draw();
 	c->SaveAs("PDF_Files/MC_simulations/MCAEoP_comb.pdf");
@@ -826,7 +826,7 @@ void MCAnalyzer::EndOfJobUser(){
 	fHisto.GetTH1("hRICHMissingMass_pion")->Draw("same");
 	fHisto.GetTH1("hRICHMissingMass_muon")->Draw("same");
 	fHisto.GetTH1("hRICHMissingMass_electron")->Draw("same");
-	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_electron"), "Electron Cuts", "l");
+	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_electron"), "Positron Cuts", "l");
 	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_muon"), "Muon Cuts", "l");
 	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_pion"), "Pion Cuts", "l");
 	legmass -> Draw();
