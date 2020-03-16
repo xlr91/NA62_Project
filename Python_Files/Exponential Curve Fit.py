@@ -26,10 +26,11 @@ def exponential_curve_fit(x, y):
     ax.scatter(x, y, s=10, c='b')
     ax.set_ylim([0, 250])
     ax.set_xlim([0, 70000])
+    ax.set_title('Radius of Ring vs Particle Momentum (MC)')
     plt.show()
     return popt
 
-
+#‎⁨Macintosh HD⁩ ▸ ⁨Users⁩ ▸ ⁨emirmuhammad⁩ ▸ ⁨Desktop⁩ ▸ ⁨NA62Files⁩ ▸ ⁨Python_Files⁩
 namep = "MCARingp.txt"
 namer = "MCARingr.txt"
 fp = open(namep, "r")
@@ -74,11 +75,15 @@ yt2 = rich(xt, 17000, 1.000061, 139.570,8)
 yt1 = rich(xt, 17000, 1.000061, 139.570,-2)
 
 
-plt.scatter(pdata, rdata, s=1)
+
 #plt.ylim(0, 250)
-plt.ylabel('some numbers')
-plt.plot(xt, yt1, 'r')
-plt.plot(xt, yt2, 'r')
+plt.ylabel('Radius (mm)')
+plt.xlabel('Momentum (MeV)')
+plt.title("Radius of Ring vs Particle Momentum (MC)")
+plt.plot(xt, yt2, 'r', label='r(p, 8)')
+plt.scatter(pdata, rdata, s=1, label='Events',)
+plt.plot(xt, yt1, color='k', label='r(p, -2)')
+plt.legend()
 plt.show()
 
 
