@@ -303,7 +303,7 @@ void TriggerStudy::Process(int iEvent){
 		Double_t LowEoPLim = 0.05;
 		Double_t HighEoPLim = 0.9;
 		Double_t LowMassLim = 0.005;
-		Double_t HighMassLim = 0.0125;
+		Double_t HighMassLim = 0.015;
 
 		if (Ptrack > 35000 || Ptrack < 15000) return;
 
