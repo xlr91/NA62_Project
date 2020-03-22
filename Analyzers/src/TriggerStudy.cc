@@ -104,6 +104,11 @@ void TriggerStudy::InitHist(){
 	BookCounter("TotElectronExcluded");
 	BookCounter("TotPionsRemaining");
 
+	BookCounter("SeqElectron");
+	BookCounter("SeqMuon");
+	BookCounter("SeqPion");
+
+
 
 	BookCounter("TotalRich_counts");
 	BookCounter("Rich_Included");
@@ -119,8 +124,10 @@ void TriggerStudy::InitHist(){
 	NewEventFraction("L0PNNAnalysis");
 	NewEventFraction("LKrEoPCuts");
 	NewEventFraction("TotEoPCuts");
+	NewEventFraction("SeqEoPCuts");
 	NewEventFraction("RichCuts");
 	NewEventFraction("RecoMassCuts");
+	
 
 	AddCounterToEventFraction("TriggerAnalysis", "TotalEvent");
  	AddCounterToEventFraction("TriggerAnalysis", "PhysicsEvent");
@@ -164,6 +171,13 @@ void TriggerStudy::InitHist(){
 	AddCounterToEventFraction("TotEoPCuts", "TotElectronExcluded");
 	AddCounterToEventFraction("TotEoPCuts", "TotPionsRemaining");
 	DefineSampleSizeCounter("TotEoPCuts", "Totnon0Counter");
+
+	AddCounterToEventFraction("SeqEoPCuts", "Tot0Counter");
+	AddCounterToEventFraction("SeqEoPCuts", "Totnon0Counter");
+	AddCounterToEventFraction("SeqEoPCuts", "SeqElectron");
+	AddCounterToEventFraction("SeqEoPCuts", "SeqMuon");
+	AddCounterToEventFraction("SeqEoPCuts", "SeqPion");
+	DefineSampleSizeCounter("SeqEoPCuts", "Totnon0Counter");
 
 	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
 	AddCounterToEventFraction("RichCuts", "Rich_Included");
@@ -385,6 +399,12 @@ void TriggerStudy::Process(int iEvent){
 				IncrementCounter("TotPionsRemaining");
 				FillHisto("hTOTEoP_pion", TotEoP);
 			}
+
+			///Sequential Eop cuts 
+			///use TotalEoP_Counts and Tot0Counter
+			if (LKREoP > HighEoPLim) IncrementCounter("SeqElectron");
+			else if (TotEoP < LowEoPLim) IncrementCounter("SeqMuon");
+			else IncrementCounter("SeqPion");
 		}
 
 		///Rich Cuts

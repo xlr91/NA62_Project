@@ -54,6 +54,8 @@ void MCAnalyzer::InitHist(){
 	BookHisto("hTOTEoP_electron",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hTOTEoP_muon",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
+	BookHisto("hEoP_Test", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
+
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum (MC)", 300, 14000, 36000, 300, 0, 240));
 	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 300, 14000, 36000, 300, 0, 240));
 
@@ -98,6 +100,11 @@ void MCAnalyzer::InitHist(){
 	BookCounter("TotMuonExcluded");
 	BookCounter("TotElectronExcluded");
 	BookCounter("TotPionsRemaining");
+	
+	BookCounter("SeqElectron");
+	BookCounter("SeqMuon");
+	BookCounter("SeqPion");
+
 
 	BookCounter("TotalRich_counts");
 	BookCounter("Rich_Included");
@@ -135,8 +142,11 @@ void MCAnalyzer::InitHist(){
 
 	NewEventFraction("LKrEoPCuts");
 	NewEventFraction("TotEoPCuts");
+	NewEventFraction("SeqEoPCuts");
 	NewEventFraction("RichCuts");
 	NewEventFraction("RecoMassCuts");
+	
+
 	///AddCounterToEventFraction("LKrEoPCuts", "TotalEoP_counts");
 	AddCounterToEventFraction("LKrEoPCuts", "LKr0Counter");
 	AddCounterToEventFraction("LKrEoPCuts", "LKrnon0Counter");
@@ -151,6 +161,13 @@ void MCAnalyzer::InitHist(){
 	AddCounterToEventFraction("TotEoPCuts", "TotElectronExcluded");
 	AddCounterToEventFraction("TotEoPCuts", "TotPionsRemaining");
 	DefineSampleSizeCounter("TotEoPCuts", "Totnon0Counter");
+
+	AddCounterToEventFraction("SeqEoPCuts", "Tot0Counter");
+	AddCounterToEventFraction("SeqEoPCuts", "Totnon0Counter");
+	AddCounterToEventFraction("SeqEoPCuts", "SeqElectron");
+	AddCounterToEventFraction("SeqEoPCuts", "SeqMuon");
+	AddCounterToEventFraction("SeqEoPCuts", "SeqPion");
+	DefineSampleSizeCounter("SeqEoPCuts", "Totnon0Counter");
 
 	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
 	AddCounterToEventFraction("RichCuts", "Rich_Included");
@@ -331,7 +348,9 @@ void MCAnalyzer::Process(int iEvent){
 		if(TotEoP == 0.0) IncrementCounter("Tot0Counter");
 		else{
 			IncrementCounter("Totnon0Counter");
-			FillHisto("hTOTEoP_base", TotEoP);		
+			FillHisto("hTOTEoP_base", TotEoP);
+			FillHisto("hEoP_Test", LKREoP, TotEoP);
+					
 			if (TotEoP < LowEoPLim) {
 				IncrementCounter("TotMuonExcluded");
 				FillHisto("hTOTEoP_muon", TotEoP);
@@ -344,6 +363,13 @@ void MCAnalyzer::Process(int iEvent){
 				IncrementCounter("TotPionsRemaining");
 				FillHisto("hTOTEoP_pion", TotEoP);
 			}
+
+			///Sequential Eop cuts 
+			///use TotalEoP_Counts and Tot0Counter
+			if (LKREoP > HighEoPLim) IncrementCounter("SeqElectron");
+			else if (TotEoP < LowEoPLim) IncrementCounter("SeqMuon");
+			else IncrementCounter("SeqPion");
+
 		}
 
 
