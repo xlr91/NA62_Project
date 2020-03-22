@@ -63,7 +63,7 @@ void TriggerStudy::InitHist(){
 	BookHisto("hTOTEoP_electron",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hTOTEoP_muon",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
-	BookHisto("hEoP_base", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP (Data)", 500, 0, 1.2, 500, 0, 1.2));
+	BookHisto("hEoP_base", new TH2D("EoP_test", "2D Histogram of Total and LKr EoP (Data)", 500, 0, 1.2, 500, 0, 1.2));
 	BookHisto("hEoP_electron", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
 	BookHisto("hEoP_muon", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
 
@@ -532,7 +532,7 @@ void TriggerStudy::EndOfJobUser(){
 	leglkreop -> Draw();
 	c->SaveAs("PDF_Files/TriggerStudy/LKrEoP_comb.pdf");
 
-	fHisto.GetTH1("hTOTEoP_base")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
+	fHisto.GetTH1("hTOTEoP_base")->SetXTitle("#frac{E_{Tot}}{p_{spec}}");
 	fHisto.GetTH1("hTOTEoP_base")->SetYTitle("Number of Hits");
 	fHisto.GetTH1("hTOTEoP_base")->SetStats(false);
 
@@ -595,9 +595,9 @@ void TriggerStudy::EndOfJobUser(){
 	legmass -> Draw();
 	c->SaveAs("PDF_Files/TriggerStudy/Mass_comb.pdf");
 
-
-	fHisto.GetTH2("hEoP_base")->SetYTitle("Total EoP");
-	fHisto.GetTH2("hEoP_base")->SetXTitle("LKr EoP");
+	
+	fHisto.GetTH2("hEoP_base")->SetYTitle("#frac{E_{Tot}}{p_{spec}}");
+	fHisto.GetTH2("hEoP_base")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
 	fHisto.GetTH2("hEoP_base")->SetMarkerColor(kBlue);
 	fHisto.GetTH2("hEoP_electron")->SetMarkerColor(kGreen);
 	fHisto.GetTH2("hEoP_muon")->SetMarkerColor(kRed);
