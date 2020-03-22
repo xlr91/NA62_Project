@@ -54,7 +54,9 @@ void MCAnalyzer::InitHist(){
 	BookHisto("hTOTEoP_electron",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hTOTEoP_muon",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
-	BookHisto("hEoP_Test", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
+	BookHisto("hEoP_base", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP (MC)", 500, 0, 1.2, 500, 0, 1.2));
+	BookHisto("hEoP_electron", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
+	BookHisto("hEoP_muon", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum (MC)", 300, 14000, 36000, 300, 0, 240));
 	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 300, 14000, 36000, 300, 0, 240));
@@ -349,26 +351,39 @@ void MCAnalyzer::Process(int iEvent){
 		else{
 			IncrementCounter("Totnon0Counter");
 			FillHisto("hTOTEoP_base", TotEoP);
-			FillHisto("hEoP_Test", LKREoP, TotEoP);
+			
 					
 			if (TotEoP < LowEoPLim) {
 				IncrementCounter("TotMuonExcluded");
 				FillHisto("hTOTEoP_muon", TotEoP);
+				
 			}
 			else if (TotEoP > HighEoPLim) {
 				IncrementCounter("TotElectronExcluded");
 				FillHisto("hTOTEoP_electron", TotEoP);
+				
 			}
 			else{
 				IncrementCounter("TotPionsRemaining");
 				FillHisto("hTOTEoP_pion", TotEoP);
+				
 			}
 
 			///Sequential Eop cuts 
 			///use TotalEoP_Counts and Tot0Counter
-			if (LKREoP > HighEoPLim) IncrementCounter("SeqElectron");
-			else if (TotEoP < LowEoPLim) IncrementCounter("SeqMuon");
-			else IncrementCounter("SeqPion");
+			if (LKREoP > HighEoPLim) {
+				IncrementCounter("SeqElectron");
+				FillHisto("hEoP_electron", LKREoP, TotEoP);
+			}
+
+			else if (TotEoP < LowEoPLim) {
+				IncrementCounter("SeqMuon");
+				FillHisto("hEoP_muon", LKREoP, TotEoP);
+			}
+			else {
+				IncrementCounter("SeqPion");
+				FillHisto("hEoP_base", LKREoP, TotEoP);
+			}
 
 		}
 
@@ -500,6 +515,23 @@ void MCAnalyzer::EndOfJobUser(){
 	legmass -> Draw();
 	c->SaveAs("PDF_Files/MC_simulations/MCAMass_comb.pdf");
 
+	
+	fHisto.GetTH2("hEoP_base")->SetYTitle("Total EoP");
+	fHisto.GetTH2("hEoP_base")->SetXTitle("LKr EoP");
+	fHisto.GetTH2("hEoP_base")->SetMarkerColor(kBlue);
+	fHisto.GetTH2("hEoP_electron")->SetMarkerColor(kGreen);
+	fHisto.GetTH2("hEoP_muon")->SetMarkerColor(kRed);
+	fHisto.GetTH2("hEoP_base")->SetStats(false);
+	
+	fHisto.GetTH2("hEoP_base")->Draw();
+	fHisto.GetTH2("hEoP_electron")->Draw("same");
+	fHisto.GetTH2("hEoP_muon")->Draw("same");
+	legtoteop -> Draw();
+	c->SaveAs("PDF_Files/MC_simulations/MCAEoP_comb.pdf");
+
+
+	///fHisto.GetTH2("hEoP_base")->SetOption("LEGO");
+	
 	
 	SaveAllPlots();
 	myfilep.close();

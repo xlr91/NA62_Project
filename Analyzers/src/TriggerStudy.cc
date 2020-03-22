@@ -58,10 +58,14 @@ void TriggerStudy::InitHist(){
 	BookHisto("hLKREoP_electron",new TH1D("LKrEoP", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hLKREoP_muon",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
-	BookHisto("hTOTEoP_base",new TH1D("TOTEoP", "Histogram of Total Energy over Spectrometer Momentum (MC)", 500, 0, 1.2));
+	BookHisto("hTOTEoP_base",new TH1D("TOTEoP", "Histogram of Total Energy over Spectrometer Momentum (Data)", 500, 0, 1.2));
 	BookHisto("hTOTEoP_pion",new TH1D("TOTEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
 	BookHisto("hTOTEoP_electron",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hTOTEoP_muon",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
+
+	BookHisto("hEoP_base", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP (Data)", 500, 0, 1.2, 500, 0, 1.2));
+	BookHisto("hEoP_electron", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
+	BookHisto("hEoP_muon", new TH2D("EoP_test", "2D Histogram of LKr and Total EoP", 500, 0, 1.2, 500, 0, 1.2));
 
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum (Data)", 500, 14000, 36000, 500, 0, 240));
 	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 500, 14000, 36000, 500, 0, 240));
@@ -387,6 +391,8 @@ void TriggerStudy::Process(int iEvent){
 		else{
 			IncrementCounter("Totnon0Counter");
 			FillHisto("hTOTEoP_base", TotEoP);		
+			
+			
 			if (TotEoP < LowEoPLim) {
 				IncrementCounter("TotMuonExcluded");
 				FillHisto("hTOTEoP_muon", TotEoP);
@@ -402,9 +408,19 @@ void TriggerStudy::Process(int iEvent){
 
 			///Sequential Eop cuts 
 			///use TotalEoP_Counts and Tot0Counter
-			if (LKREoP > HighEoPLim) IncrementCounter("SeqElectron");
-			else if (TotEoP < LowEoPLim) IncrementCounter("SeqMuon");
-			else IncrementCounter("SeqPion");
+			if (LKREoP > HighEoPLim) {
+				IncrementCounter("SeqElectron");
+				FillHisto("hEoP_electron", LKREoP, TotEoP);
+			}
+
+			else if (TotEoP < LowEoPLim) {
+				IncrementCounter("SeqMuon");
+				FillHisto("hEoP_muon", LKREoP, TotEoP);
+			}
+			else {
+				IncrementCounter("SeqPion");
+				FillHisto("hEoP_base", LKREoP, TotEoP);
+			}
 		}
 
 		///Rich Cuts
@@ -578,6 +594,20 @@ void TriggerStudy::EndOfJobUser(){
 	legmass -> AddEntry(fHisto.GetTH1("hRICHMissingMass_pion"), "Pion Cuts", "l");
 	legmass -> Draw();
 	c->SaveAs("PDF_Files/TriggerStudy/Mass_comb.pdf");
+
+
+	fHisto.GetTH2("hEoP_base")->SetYTitle("Total EoP");
+	fHisto.GetTH2("hEoP_base")->SetXTitle("LKr EoP");
+	fHisto.GetTH2("hEoP_base")->SetMarkerColor(kBlue);
+	fHisto.GetTH2("hEoP_electron")->SetMarkerColor(kGreen);
+	fHisto.GetTH2("hEoP_muon")->SetMarkerColor(kRed);
+	fHisto.GetTH2("hEoP_base")->SetStats(false);
+	
+	fHisto.GetTH2("hEoP_base")->Draw();
+	fHisto.GetTH2("hEoP_electron")->Draw("same");
+	fHisto.GetTH2("hEoP_muon")->Draw("same");
+	legtoteop -> Draw();
+	c->SaveAs("PDF_Files/TriggerStudy/EoP_comb.pdf");
 
 	delete c;
 	SaveAllPlots();
