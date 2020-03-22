@@ -49,6 +49,11 @@ void MCAnalyzer::InitHist(){
 	BookHisto("hLKREoP_electron",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
 	BookHisto("hLKREoP_muon",new TH1D("LKrEoP_cuts", "Histogram of LKrEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
 
+	BookHisto("hTOTEoP_base",new TH1D("TOTEoP", "Histogram of Total Energy over Spectrometer Momentum (MC)", 500, 0, 1.2));
+	BookHisto("hTOTEoP_pion",new TH1D("TOTEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Pion)", 500, 0, 1.2));
+	BookHisto("hTOTEoP_electron",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Electron)", 500, 0, 1.2));
+	BookHisto("hTOTEoP_muon",new TH1D("TOTEoPEoP_cuts", "Histogram of TotEnergy over Spectrometer Momentum (Muon)", 500, 0, 1.2));
+
 	BookHisto("hRICHring", new TH2D("RichRing", "Radius of Ring vs Particle Momentum (MC)", 300, 14000, 36000, 300, 0, 240));
 	BookHisto("hRICHring_exc", new TH2D("RichRing_cuts", "Radius of ring function of particle momentum (Excluded)", 300, 14000, 36000, 300, 0, 240));
 
@@ -79,12 +84,20 @@ void MCAnalyzer::InitHist(){
 	BookCounter("Pi0Selection");
 
 
+	BookCounter("LKrEoP_counts");
+	BookCounter("LKr0Counter");
+	BookCounter("LKrnon0Counter");
+	BookCounter("LKrMuonExcluded");
+	BookCounter("LKrElectronExcluded");
+	BookCounter("LKrPionsRemaining");
+
 	BookCounter("TotalEoP_counts");
-	BookCounter("OCounter");
-	BookCounter("non0Counter");
-	BookCounter("MuonExcluded");
-	BookCounter("ElectronExcluded");
-	BookCounter("PionsRemaining");
+	BookCounter("TotEoP_counts");
+	BookCounter("Tot0Counter");
+	BookCounter("Totnon0Counter");
+	BookCounter("TotMuonExcluded");
+	BookCounter("TotElectronExcluded");
+	BookCounter("TotPionsRemaining");
 
 	BookCounter("TotalRich_counts");
 	BookCounter("Rich_Included");
@@ -120,16 +133,24 @@ void MCAnalyzer::InitHist(){
 	DefineSampleSizeCounter(name2, "L0PNN_ok");
 
 
-	NewEventFraction("EoPCuts");
+	NewEventFraction("LKrEoPCuts");
+	NewEventFraction("TotEoPCuts");
 	NewEventFraction("RichCuts");
 	NewEventFraction("RecoMassCuts");
-	///AddCounterToEventFraction("EoPCuts", "TotalEoP_counts");
-	AddCounterToEventFraction("EoPCuts", "OCounter");
-	AddCounterToEventFraction("EoPCuts", "non0Counter");
-	AddCounterToEventFraction("EoPCuts", "MuonExcluded");
-	AddCounterToEventFraction("EoPCuts", "ElectronExcluded");
-	AddCounterToEventFraction("EoPCuts", "PionsRemaining");
-	DefineSampleSizeCounter("EoPCuts", "non0Counter");
+	///AddCounterToEventFraction("LKrEoPCuts", "TotalEoP_counts");
+	AddCounterToEventFraction("LKrEoPCuts", "LKr0Counter");
+	AddCounterToEventFraction("LKrEoPCuts", "LKrnon0Counter");
+	AddCounterToEventFraction("LKrEoPCuts", "LKrMuonExcluded");
+	AddCounterToEventFraction("LKrEoPCuts", "LKrElectronExcluded");
+	AddCounterToEventFraction("LKrEoPCuts", "LKrPionsRemaining");
+	DefineSampleSizeCounter("LKrEoPCuts", "LKrnon0Counter");
+
+	AddCounterToEventFraction("TotEoPCuts", "Tot0Counter");
+	AddCounterToEventFraction("TotEoPCuts", "Totnon0Counter");
+	AddCounterToEventFraction("TotEoPCuts", "TotMuonExcluded");
+	AddCounterToEventFraction("TotEoPCuts", "TotElectronExcluded");
+	AddCounterToEventFraction("TotEoPCuts", "TotPionsRemaining");
+	DefineSampleSizeCounter("TotEoPCuts", "Totnon0Counter");
 
 	AddCounterToEventFraction("RichCuts", "TotalRich_counts");
 	AddCounterToEventFraction("RichCuts", "Rich_Included");
@@ -278,22 +299,50 @@ void MCAnalyzer::Process(int iEvent){
 		
 		
 		///EoP Cuts
-		IncrementCounter("TotalEoP_counts");
-		if(LKREoP == 0.0) IncrementCounter("OCounter");
+		IncrementCounter("LKrEoP_counts");
+		if(LKREoP == 0.0) IncrementCounter("LKr0Counter");
 		else{
-			IncrementCounter("non0Counter");
+			IncrementCounter("LKrnon0Counter");
 			FillHisto("hLKREoP_base", LKREoP);		
 			if (LKREoP < LowEoPLim) {
-				IncrementCounter("MuonExcluded");
+				IncrementCounter("LKrMuonExcluded");
 				FillHisto("hLKREoP_muon", LKREoP);
 			}
 			else if (LKREoP > HighEoPLim) {
-				IncrementCounter("ElectronExcluded");
+				IncrementCounter("LKrElectronExcluded");
 				FillHisto("hLKREoP_electron", LKREoP);
 			}
 			else{
-				IncrementCounter("PionsRemaining");
+				IncrementCounter("LKrPionsRemaining");
 				FillHisto("hLKREoP_pion", LKREoP);
+			}
+		}
+	
+
+
+		///EoP Cuts with MUV
+		Double_t LKRE = Tracks[0].GetLKrEnergy();
+		Double_t MUV1E = Tracks[0].GetMUV1ClusterEnergy();
+		Double_t MUV2E = Tracks[0].GetMUV2ClusterEnergy();
+		Double_t TotE = LKRE + MUV1E + MUV2E;
+		Double_t TotEoP = TotE / (Tracks[0].GetMomentum());
+		
+		IncrementCounter("TotalEoP_counts");
+		if(TotEoP == 0.0) IncrementCounter("Tot0Counter");
+		else{
+			IncrementCounter("Totnon0Counter");
+			FillHisto("hTOTEoP_base", TotEoP);		
+			if (TotEoP < LowEoPLim) {
+				IncrementCounter("TotMuonExcluded");
+				FillHisto("hTOTEoP_muon", TotEoP);
+			}
+			else if (TotEoP > HighEoPLim) {
+				IncrementCounter("TotElectronExcluded");
+				FillHisto("hTOTEoP_electron", TotEoP);
+			}
+			else{
+				IncrementCounter("TotPionsRemaining");
+				FillHisto("hTOTEoP_pion", TotEoP);
 			}
 		}
 
@@ -346,7 +395,8 @@ void MCAnalyzer::EndOfRunUser(){
 void MCAnalyzer::EndOfJobUser(){
 
 	TCanvas *c = new TCanvas;
-	TLegend *legeop = new TLegend(0.15, 0.75, 0.35, 0.85);
+	TLegend *leglkreop = new TLegend(0.15, 0.75, 0.35, 0.85);
+	TLegend *legtoteop = new TLegend(0.15, 0.75, 0.35, 0.85);
 	TLegend *legrich = new TLegend(0.15, 0.75, 0.40, 0.90);
 	TLegend *legmass = new TLegend(0.15, 0.75, 0.35, 0.85);
 
@@ -362,14 +412,33 @@ void MCAnalyzer::EndOfJobUser(){
 
 	fHisto.GetTH1("hLKREoP_base")->Draw();
 	fHisto.GetTH1("hLKREoP_muon")->Draw("same");
-	fHisto.GetTH1("hLKREoP_pion")->Draw("same");
 	fHisto.GetTH1("hLKREoP_electron")->Draw("same");
+	fHisto.GetTH1("hLKREoP_pion")->Draw("same");
 	
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_muon"), "Muon Cuts", "l");
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Positron Cuts", "l");
-	legeop -> AddEntry(fHisto.GetTH1("hLKREoP_pion"), "Pion Remains", "l");
-	legeop -> Draw();
-	c->SaveAs("PDF_Files/MC_simulations/MCAEoP_comb.pdf");
+	leglkreop -> AddEntry(fHisto.GetTH1("hLKREoP_muon"), "Muon Cuts", "l");
+	leglkreop -> AddEntry(fHisto.GetTH1("hLKREoP_electron"), "Positron Cuts", "l");
+	leglkreop -> AddEntry(fHisto.GetTH1("hLKREoP_pion"), "Pion Remains", "l");
+	leglkreop -> Draw();
+	c->SaveAs("PDF_Files/MC_simulations/MCALKrEoP_comb.pdf");
+
+	fHisto.GetTH1("hTOTEoP_base")->SetXTitle("#frac{E_{LKr}}{p_{spec}}");
+	fHisto.GetTH1("hTOTEoP_base")->SetYTitle("Number of Hits");
+	fHisto.GetTH1("hTOTEoP_base")->SetStats(false);
+
+	fHisto.GetTH1("hTOTEoP_muon")->SetLineColor(kRed);
+	fHisto.GetTH1("hTOTEoP_pion")->SetLineColor(kBlue);
+	fHisto.GetTH1("hTOTEoP_electron")->SetLineColor(kGreen);
+
+	fHisto.GetTH1("hTOTEoP_base")->Draw();
+	fHisto.GetTH1("hTOTEoP_muon")->Draw("same");
+	fHisto.GetTH1("hTOTEoP_electron")->Draw("same");
+	fHisto.GetTH1("hTOTEoP_pion")->Draw("same");
+	
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_muon"), "Muon Cuts", "l");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_electron"), "Positron Cuts", "l");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_pion"), "Pion Remains", "l");
+	legtoteop -> Draw();
+	c->SaveAs("PDF_Files/MC_simulations/MCATotEoP_comb.pdf");
 
 
 	///Combining RICH Graph

@@ -1,0 +1,5 @@
+#!/bin/bash
+rm MCkm2.root*
+rm MCpinn.root*
+rm TrigOut.root*
+rm TrigOutTest.root*
