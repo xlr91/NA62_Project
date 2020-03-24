@@ -1,0 +1,17 @@
+---------------------------------------TriggerAnalysis----------------------------------------
+| Seq | Counter name                             | Value | Fraction  | ErrorHigh | ErrorLow  |
+|-----|------------------------------------------|-------|-----------|-----------|-----------|
+| 0   | *TriggerStudy.TotalEvent                 | 10000 | 1.0000000 | 0.0000000 | 0.0001841 |
+| 1   | TriggerStudy.PhysicsEvent                | 3227  | 0.3227000 | 0.0047428 | 0.0047070 |
+| 2   | TriggerStudy.notAutopass                 | 9677  | 0.9677000 | 0.0017702 | 0.0018664 |
+| 3   | TriggerStudy.L0PNN                       | 3120  | 0.3120000 | 0.0047019 | 0.0046639 |
+| 4   | TriggerStudy.Kmu2Selection               | 143   | 0.0143000 | 0.0012885 | 0.0011872 |
+| 5   | TriggerStudy.K2piCounter                 | 111   | 0.0111000 | 0.0011496 | 0.0010472 |
+| 6   | TriggerStudy.K3piCounter                 | 34    | 0.0034000 | 0.0006874 | 0.0005795 |
+| 7   | TriggerStudy.Ke3Selection                | 24    | 0.0024000 | 0.0005958 | 0.0004861 |
+| 8   | TriggerStudy.Kmu3SelectionNoSpectrometer | 2     | 0.0002000 | 0.0002637 | 0.0001292 |
+| 9   | TriggerStudy.Pi0Selection                | 516   | 0.0516000 | 0.0023082 | 0.0022165 |
+| 10  | TriggerStudy.ThreeTrack                  | 851   | 0.0851000 | 0.0028826 | 0.0027981 |
+| 11  | TriggerStudy.TwoTrackwLepton             | 0     | 0.0000000 | 0.0001841 | 0.0000000 |
+----------------------------------------------------------------------------------------------
+
