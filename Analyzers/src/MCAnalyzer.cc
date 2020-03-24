@@ -438,8 +438,8 @@ void MCAnalyzer::EndOfJobUser(){
 
 	TCanvas *c = new TCanvas;
 	TLegend *leglkreop = new TLegend(0.15, 0.75, 0.35, 0.85);
-	TLegend *legtoteop = new TLegend(0.15, 0.75, 0.35, 0.85);
-	TLegend *legrich = new TLegend(0.15, 0.75, 0.40, 0.90);
+	TLegend *legtoteop = new TLegend(0.65, 0.15, 0.85, 0.25);
+	TLegend *legrich = new TLegend(0.15, 0.80, 0.40, 0.90);
 	TLegend *legmass = new TLegend(0.15, 0.75, 0.35, 0.85);
 
 
@@ -476,10 +476,7 @@ void MCAnalyzer::EndOfJobUser(){
 	fHisto.GetTH1("hTOTEoP_electron")->Draw("same");
 	fHisto.GetTH1("hTOTEoP_pion")->Draw("same");
 	
-	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_muon"), "Muon Cuts", "l");
-	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_electron"), "Positron Cuts", "l");
-	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_pion"), "Pion Remains", "l");
-	legtoteop -> Draw();
+	leglkreop -> Draw();
 	c->SaveAs("PDF_Files/MC_simulations/MCATotEoP_comb.pdf");
 
 
@@ -501,6 +498,8 @@ void MCAnalyzer::EndOfJobUser(){
 	///Combining Mass Graph
 	fHisto.GetTH1("hRICHMissingMass_base")->SetXTitle("Mass^{2} (GeV^{2})");
 	fHisto.GetTH1("hRICHMissingMass_base")->SetYTitle("Number of Hits");
+
+	fHisto.GetTH1("hRICHMissingMass_base")->SetStats(false);
 
 	fHisto.GetTH1("hRICHMissingMass_electron")->SetLineColor(kGreen);
 	fHisto.GetTH1("hRICHMissingMass_muon")->SetLineColor(kRed);
@@ -527,6 +526,9 @@ void MCAnalyzer::EndOfJobUser(){
 	fHisto.GetTH2("hEoP_base")->Draw();
 	fHisto.GetTH2("hEoP_electron")->Draw("same");
 	fHisto.GetTH2("hEoP_muon")->Draw("same");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_muon"), "Muon Cuts", "l");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_electron"), "Positron Cuts", "l");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_pion"), "Pion Remains", "l");
 	legtoteop -> Draw();
 	c->SaveAs("PDF_Files/MC_simulations/MCAEoP_comb.pdf");
 

@@ -488,8 +488,8 @@ void TriggerStudy::EndOfJobUser(){
 	TCanvas *c = new TCanvas;
 	
 	TLegend *leglkreop = new TLegend(0.15, 0.75, 0.35, 0.85);
-	TLegend *legtoteop = new TLegend(0.15, 0.75, 0.35, 0.85);
-	TLegend *legrich = new TLegend(0.15, 0.75, 0.40, 0.90);
+	TLegend *legtoteop = new TLegend(0.65, 0.15, 0.85, 0.25);
+	TLegend *legrich = new TLegend(0.15, 0.80, 0.40, 0.90);
 	TLegend *legmass = new TLegend(0.15, 0.75, 0.35, 0.85);
 	
 	fHisto.GetTH1("hFullTrigStudy")->Draw();
@@ -545,11 +545,9 @@ void TriggerStudy::EndOfJobUser(){
 	fHisto.GetTH1("hTOTEoP_muon")->Draw("same");
 	fHisto.GetTH1("hTOTEoP_electron")->Draw("same");
 	fHisto.GetTH1("hTOTEoP_pion")->Draw("same");
+
+	leglkreop -> Draw();
 	
-	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_muon"), "Muon Cuts", "l");
-	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_electron"), "Positron Cuts", "l");
-	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_pion"), "Pion Remains", "l");
-	legtoteop -> Draw();
 	c->SaveAs("PDF_Files/TriggerStudy/TotEoP_comb.pdf");
 
 
@@ -581,6 +579,8 @@ void TriggerStudy::EndOfJobUser(){
 	fHisto.GetTH1("hRICHMissingMass_base")->SetXTitle("Mass^{2} (GeV^{2})");
 	fHisto.GetTH1("hRICHMissingMass_base")->SetYTitle("Number of Hits");
 
+	fHisto.GetTH1("hRICHMissingMass_base")->SetStats(false);
+
 	fHisto.GetTH1("hRICHMissingMass_electron")->SetLineColor(kGreen);
 	fHisto.GetTH1("hRICHMissingMass_muon")->SetLineColor(kRed);
 	fHisto.GetTH1("hRICHMissingMass_pion")->SetLineColor(kBlue);
@@ -607,6 +607,9 @@ void TriggerStudy::EndOfJobUser(){
 	fHisto.GetTH2("hEoP_base")->Draw();
 	fHisto.GetTH2("hEoP_electron")->Draw("same");
 	fHisto.GetTH2("hEoP_muon")->Draw("same");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_muon"), "Muon Cuts", "l");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_electron"), "Positron Cuts", "l");
+	legtoteop -> AddEntry(fHisto.GetTH1("hTOTEoP_pion"), "Pion Remains", "l");
 	legtoteop -> Draw();
 	c->SaveAs("PDF_Files/TriggerStudy/EoP_comb.pdf");
 
