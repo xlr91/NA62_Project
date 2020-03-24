@@ -1,5 +1,12 @@
 #!/bin/bash
+source scripts/env.sh
+NA62AnalysisBuilder.py cleanuser
 rm MCkm2.root*
 rm MCpinn.root*
 rm TrigOut.root*
 rm TrigOutTest.root*
+rm MCARingp.txt
+rm MCARingr.txt
+rm MCARingpr.txt
+rm PDF_Files/MC_simulations/*.pdf
+rm PDF_Files/TriggerStudy/*.pdf

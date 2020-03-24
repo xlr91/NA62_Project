@@ -340,7 +340,8 @@ void TriggerStudy::Process(int iEvent){
 		Double_t RichMass = Tracks[0].GetRICHSingleRingTrkCentredMass();
 		Double_t RichMass2 = RichMass*RichMass/1000000;
 
-		Double_t LowEoPLim = 0.05;
+		///Double_t LowEoPLim = 0.05;
+		Double_t LowEoPLim = 0.2;
 		Double_t HighEoPLim = 0.9;
 		Double_t LowMassLim = 0.005;
 		Double_t HighMassLim = 0.015;
@@ -413,7 +414,7 @@ void TriggerStudy::Process(int iEvent){
 				FillHisto("hEoP_electron", LKREoP, TotEoP);
 			}
 
-			else if (TotEoP < LowEoPLim) {
+			else if (TotEoP < LowEoPLim && LKREoP != 0.0) {
 				IncrementCounter("SeqMuon");
 				FillHisto("hEoP_muon", LKREoP, TotEoP);
 			}
