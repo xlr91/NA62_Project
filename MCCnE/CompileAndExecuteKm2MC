@@ -1,4 +1,0 @@
-#!/bin/bash
-source scripts/env.sh 
-NA62AnalysisBuilder.py build MCConfig/Km2MCConfig
-./bin-cc7/Km2MC -l MCList/km2.lst -o Km2MC.root

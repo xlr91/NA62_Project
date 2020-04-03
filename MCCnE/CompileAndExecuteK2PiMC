@@ -1,4 +1,0 @@
-#!/bin/bash
-source scripts/env.sh 
-NA62AnalysisBuilder.py build MCConfig/K2PiMCConfig
-./bin-cc7/K2PiMC -l MCList/k2pi.lst -o K2PiMC.root
